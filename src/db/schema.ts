@@ -50,6 +50,15 @@ export const visitRequests = pgTable("visit_requests", {
   area: text("area"),
   propertyType: text("property_type"),
   packageId: integer("package_id").references(() => packages.id),
+  // Snapshot of the calculator selection at submission time, so the dashboard
+  // always shows exactly what the customer confirmed, even if the package or
+  // its pricing changes later.
+  packageNameSnapshot: text("package_name_snapshot"),
+  areaSqm: integer("area_sqm"),
+  downPct: integer("down_pct"),
+  installmentMonths: integer("installment_months"),
+  monthlyInstallment: integer("monthly_installment"),
+  totalCost: integer("total_cost"),
   preferredDate: timestamp("preferred_date"),
   // "YYYY-MM-DD" — kept alongside preferredDate for easy, timezone-safe availability lookups.
   preferredDateStr: text("preferred_date_str"),
@@ -80,12 +89,26 @@ export const siteSettings = pgTable("site_settings", {
   youtubeEnabled: boolean("youtube_enabled").notNull().default(false),
   linkedinUrl: text("linkedin_url"),
   linkedinEnabled: boolean("linkedin_enabled").notNull().default(false),
+  heroTitleAr: text("hero_title_ar"),
+  heroTitleEn: text("hero_title_en"),
+  heroSubtitleAr: text("hero_subtitle_ar"),
+  heroSubtitleEn: text("hero_subtitle_en"),
+  aboutTextAr: text("about_text_ar"),
+  aboutTextEn: text("about_text_en"),
+  workingHoursAr: text("working_hours_ar"),
+  workingHoursEn: text("working_hours_en"),
+  mapUrl: text("map_url"),
+  seoTitleAr: text("seo_title_ar"),
+  seoTitleEn: text("seo_title_en"),
+  seoDescriptionAr: text("seo_description_ar"),
+  seoDescriptionEn: text("seo_description_en"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const portfolioProjects = pgTable("portfolio_projects", {
   id: serial("id").primaryKey(),
   nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en"),
   category: text("category").notNull().default("سكني"), // سكني | تجاري
   beforeImageUrl: text("before_image_url"),
   afterImageUrl: text("after_image_url"),
@@ -108,14 +131,6 @@ export const blockedDates = pgTable("blocked_dates", {
   id: serial("id").primaryKey(),
   date: text("date").notNull().unique(), // "YYYY-MM-DD"
   reason: text("reason"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-export const contactMessages = pgTable("contact_messages", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  phone: text("phone").notNull(),
-  message: text("message").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

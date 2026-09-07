@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle, Clock } from "lucide-react";
 
 function FacebookIcon() {
   return (
@@ -63,6 +63,8 @@ type Settings = {
   youtubeEnabled: boolean;
   linkedinUrl: string | null;
   linkedinEnabled: boolean;
+  workingHoursAr: string | null;
+  mapUrl: string | null;
 };
 
 export default function Footer({ settings }: { settings: Settings }) {
@@ -122,7 +124,6 @@ export default function Footer({ settings }: { settings: Settings }) {
             <li><Link href="/services" className="hover:text-gold">خدماتنا</Link></li>
             <li><Link href="/packages" className="hover:text-gold">باقات التقسيط</Link></li>
             <li><Link href="/blog" className="hover:text-gold">المدونة</Link></li>
-            <li><Link href="/contact" className="hover:text-gold">اتصل بنا</Link></li>
           </ul>
         </div>
 
@@ -131,7 +132,13 @@ export default function Footer({ settings }: { settings: Settings }) {
           <ul className="space-y-3 text-sm text-white/60">
             <li className="flex items-start gap-2">
               <MapPin size={16} className="text-gold shrink-0 mt-0.5" />
-              {settings.address}
+              {settings.mapUrl ? (
+                <a href={settings.mapUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gold">
+                  {settings.address}
+                </a>
+              ) : (
+                settings.address
+              )}
             </li>
             <li className="flex items-center gap-2">
               <Phone size={16} className="text-gold" /> {settings.contactPhone}
@@ -139,6 +146,11 @@ export default function Footer({ settings }: { settings: Settings }) {
             <li className="flex items-center gap-2">
               <Mail size={16} className="text-gold" /> {settings.contactEmail}
             </li>
+            {settings.workingHoursAr && (
+              <li className="flex items-center gap-2">
+                <Clock size={16} className="text-gold" /> {settings.workingHoursAr}
+              </li>
+            )}
           </ul>
         </div>
 

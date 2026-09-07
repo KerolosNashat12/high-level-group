@@ -4,7 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, Sparkles } from "lucide-react";
 
-export default function Hero() {
+export default function Hero({
+  title,
+  subtitle,
+}: {
+  title?: string | null;
+  subtitle?: string | null;
+} = {}) {
   return (
     <section className="relative min-h-[92vh] flex items-end overflow-hidden bg-ink text-white">
       <Image
@@ -26,20 +32,26 @@ export default function Hero() {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
-            تشطيب شقق
-            <br />
-            <span className="text-gold italic">بالتقسيط في مصر</span>
-          </h1>
+          {title ? (
+            <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
+              {title}
+            </h1>
+          ) : (
+            <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
+              تشطيب شقق
+              <br />
+              <span className="text-gold italic">بالتقسيط في مصر</span>
+            </h1>
+          )}
 
           <p className="mt-6 text-white/70 text-base sm:text-lg leading-relaxed max-w-xl">
-            الخيار الأول للرفاهية والتميز. نقدم حلول تشطيب ذكية بـ 3 باقات
-            عالمية تجمع بين الفن المعماري وأسهل أنظمة سداد.
+            {subtitle ||
+              "الخيار الأول للرفاهية والتميز. نقدم حلول تشطيب ذكية بـ 3 باقات عالمية تجمع بين الفن المعماري وأسهل أنظمة سداد."}
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link
-              href="/packages#visit-request"
+              href="/packages#calculator"
               className="rounded-full bg-gold-gradient px-8 py-4 font-bold hover:opacity-90 transition shadow-lg shadow-gold/20"
             >
               ابدأ مشروعك الآن

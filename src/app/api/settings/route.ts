@@ -21,6 +21,19 @@ const schema = z.object({
   youtubeEnabled: z.boolean().optional(),
   linkedinUrl: z.string().nullable().optional(),
   linkedinEnabled: z.boolean().optional(),
+  heroTitleAr: z.string().nullable().optional(),
+  heroTitleEn: z.string().nullable().optional(),
+  heroSubtitleAr: z.string().nullable().optional(),
+  heroSubtitleEn: z.string().nullable().optional(),
+  aboutTextAr: z.string().nullable().optional(),
+  aboutTextEn: z.string().nullable().optional(),
+  workingHoursAr: z.string().nullable().optional(),
+  workingHoursEn: z.string().nullable().optional(),
+  mapUrl: z.string().nullable().optional(),
+  seoTitleAr: z.string().nullable().optional(),
+  seoTitleEn: z.string().nullable().optional(),
+  seoDescriptionAr: z.string().nullable().optional(),
+  seoDescriptionEn: z.string().nullable().optional(),
 });
 
 export async function PATCH(req: NextRequest) {

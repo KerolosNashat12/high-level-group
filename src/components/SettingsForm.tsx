@@ -20,6 +20,19 @@ type Settings = {
   youtubeEnabled: boolean;
   linkedinUrl: string | null;
   linkedinEnabled: boolean;
+  heroTitleAr: string | null;
+  heroTitleEn: string | null;
+  heroSubtitleAr: string | null;
+  heroSubtitleEn: string | null;
+  aboutTextAr: string | null;
+  aboutTextEn: string | null;
+  workingHoursAr: string | null;
+  workingHoursEn: string | null;
+  mapUrl: string | null;
+  seoTitleAr: string | null;
+  seoTitleEn: string | null;
+  seoDescriptionAr: string | null;
+  seoDescriptionEn: string | null;
 };
 
 const SOCIALS: { key: "facebook" | "instagram" | "tiktok" | "youtube" | "linkedin"; label: string }[] = [
@@ -108,6 +121,150 @@ export default function SettingsForm({ settings }: { settings: Settings }) {
               value={form.address}
               onChange={(e) => update("address", e.target.value)}
               className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+        <h2 className="font-bold text-ink">الصفحة الرئيسية (Hero)</h2>
+        <p className="text-xs text-ink-soft -mt-2">العنوان والوصف اللي بيظهر أول ما حد يفتح الموقع. اسيبه فاضي عشان يفضل يظهر النص الافتراضي.</p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-ink-soft">العنوان الرئيسي (عربي)</label>
+            <textarea
+              value={form.heroTitleAr ?? ""}
+              onChange={(e) => update("heroTitleAr", (e.target.value || null) as never)}
+              rows={2}
+              placeholder="تشطيب شقق بالتقسيط في مصر"
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">Hero Title (English)</label>
+            <textarea
+              value={form.heroTitleEn ?? ""}
+              onChange={(e) => update("heroTitleEn", (e.target.value || null) as never)}
+              rows={2}
+              placeholder="Apartment Finishing in Installments in Egypt"
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-ink-soft">الوصف الفرعي (عربي)</label>
+            <textarea
+              value={form.heroSubtitleAr ?? ""}
+              onChange={(e) => update("heroSubtitleAr", (e.target.value || null) as never)}
+              rows={2}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">Hero Subtitle (English)</label>
+            <textarea
+              value={form.heroSubtitleEn ?? ""}
+              onChange={(e) => update("heroSubtitleEn", (e.target.value || null) as never)}
+              rows={2}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+        <h2 className="font-bold text-ink">من نحن</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-ink-soft">وصف الشركة (عربي)</label>
+            <textarea
+              value={form.aboutTextAr ?? ""}
+              onChange={(e) => update("aboutTextAr", (e.target.value || null) as never)}
+              rows={4}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">About Us (English)</label>
+            <textarea
+              value={form.aboutTextEn ?? ""}
+              onChange={(e) => update("aboutTextEn", (e.target.value || null) as never)}
+              rows={4}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+        <h2 className="font-bold text-ink">ساعات العمل والموقع على الخريطة</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-ink-soft">ساعات العمل (عربي)</label>
+            <input
+              value={form.workingHoursAr ?? ""}
+              onChange={(e) => update("workingHoursAr", (e.target.value || null) as never)}
+              placeholder="من 10 صباحًا حتى 8 مساءً، طوال أيام الأسبوع"
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">Working Hours (English)</label>
+            <input
+              value={form.workingHoursEn ?? ""}
+              onChange={(e) => update("workingHoursEn", (e.target.value || null) as never)}
+              placeholder="Daily, 10 AM - 8 PM"
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs font-bold text-ink-soft">رابط الموقع على خرائط جوجل</label>
+            <input
+              value={form.mapUrl ?? ""}
+              onChange={(e) => update("mapUrl", (e.target.value || null) as never)}
+              placeholder="https://maps.google.com/?q=..."
+              dir="ltr"
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+        <h2 className="font-bold text-ink">تحسين محركات البحث (SEO)</h2>
+        <p className="text-xs text-ink-soft -mt-2">العنوان والوصف اللي بيظهر في نتائج جوجل.</p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-ink-soft">عنوان الموقع (عربي)</label>
+            <input
+              value={form.seoTitleAr ?? ""}
+              onChange={(e) => update("seoTitleAr", (e.target.value || null) as never)}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">Site Title (English)</label>
+            <input
+              value={form.seoTitleEn ?? ""}
+              onChange={(e) => update("seoTitleEn", (e.target.value || null) as never)}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-ink-soft">وصف الموقع (عربي)</label>
+            <textarea
+              value={form.seoDescriptionAr ?? ""}
+              onChange={(e) => update("seoDescriptionAr", (e.target.value || null) as never)}
+              rows={2}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
+            />
+          </div>
+          <div dir="ltr">
+            <label className="text-xs font-bold text-ink-soft">Site Description (English)</label>
+            <textarea
+              value={form.seoDescriptionEn ?? ""}
+              onChange={(e) => update("seoDescriptionEn", (e.target.value || null) as never)}
+              rows={2}
+              className="w-full mt-1 rounded-lg border border-black/10 px-3 py-2.5 text-sm focus:border-gold outline-none resize-none"
             />
           </div>
         </div>

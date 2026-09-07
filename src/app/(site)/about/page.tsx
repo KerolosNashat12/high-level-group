@@ -1,11 +1,15 @@
 import Image from "next/image";
 import { Target, Eye, Award } from "lucide-react";
+import { getSiteSettings } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "من نحن | هاى ليفيل جروب",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSiteSettings();
   return (
     <>
       <section className="bg-ink text-white py-16">
@@ -30,11 +34,12 @@ export default function AboutPage() {
           </div>
           <div>
             <h2 className="text-3xl font-extrabold text-ink">قصتنا</h2>
-            <p className="mt-4 text-ink-soft leading-relaxed">
-              بدأنا رحلتنا بهدف واحد: تسهيل حصول كل أسرة مصرية على منزل أحلامها
-              دون الحاجة لدفع المبلغ كاملًا مقدمًا. من خلال باقات تقسيط ذكية
-              وفريق هندسي متكامل، نفذنا مئات المشاريع في القاهرة والجيزة
-              بأعلى معايير الجودة والالتزام بالمواعيد.
+            <p className="mt-4 text-ink-soft leading-relaxed whitespace-pre-line">
+              {settings.aboutTextAr ||
+                `بدأنا رحلتنا بهدف واحد: تسهيل حصول كل أسرة مصرية على منزل أحلامها
+دون الحاجة لدفع المبلغ كاملًا مقدمًا. من خلال باقات تقسيط ذكية
+وفريق هندسي متكامل، نفذنا مئات المشاريع في القاهرة والجيزة
+بأعلى معايير الجودة والالتزام بالمواعيد.`}
             </p>
             <div className="mt-8 grid sm:grid-cols-3 gap-6">
               <div>

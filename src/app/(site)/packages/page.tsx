@@ -1,6 +1,5 @@
 import { getPackagesWithFeatures } from "@/lib/data";
 import PackageCard from "@/components/PackageCard";
-import VisitRequestForm from "@/components/VisitRequestForm";
 import ComparisonTable from "@/components/ComparisonTable";
 import InstallmentCalculator from "@/components/InstallmentCalculator";
 import Workflow from "@/components/Workflow";
@@ -59,16 +58,6 @@ export default async function PackagesPage() {
       />
 
       <Workflow />
-
-      <section id="visit-request" className="py-24 bg-black/[0.02]">
-        <div className="container-page max-w-2xl">
-          <Reveal className="rounded-3xl border border-black/10 bg-white p-8 sm:p-10 shadow-sm">
-            <VisitRequestForm
-              packages={packages.map((p) => ({ id: p.id, nameAr: p.nameAr }))}
-            />
-          </Reveal>
-        </div>
-      </section>
     </>
   );
 }

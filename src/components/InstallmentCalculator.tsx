@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import VisitBookingForm from "@/components/VisitBookingForm";
 
 type Pkg = { id: number; nameAr: string; pricePerMeter: number; downPaymentPct: number };
 
@@ -79,6 +79,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
   const [months, setMonths] = useState(24);
   const [pkgId, setPkgId] = useState(packages[1]?.id ?? packages[0]?.id);
   const [downPct, setDownPct] = useState(packages[1]?.downPaymentPct ?? 10);
+  const [showBooking, setShowBooking] = useState(false);
 
   const selected = packages.find((p) => p.id === pkgId) ?? packages[0];
 
@@ -93,6 +94,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
   function selectPkg(p: Pkg) {
     setPkgId(p.id);
     setDownPct(p.downPaymentPct);
+    setShowBooking(false);
   }
 
   return (
@@ -194,14 +196,33 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
             3,200 ج.م/م² شامل الزجاج والسلك.
           </p>
 
-          <div className="mt-6 text-center">
-            <Link
-              href="#visit-request"
-              className="inline-block rounded-full bg-gold-gradient px-10 py-4 font-bold text-white hover:opacity-90 transition"
-            >
-              طلب معاينة وتأكيد الباقة
-            </Link>
-          </div>
+          {!showBooking && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setShowBooking(true)}
+                disabled={!selected}
+                className="inline-block rounded-full bg-gold-gradient px-10 py-4 font-bold text-white hover:opacity-90 transition disabled:opacity-60"
+              >
+                طلب معاينة وتأكيد الباقة
+              </button>
+            </div>
+          )}
+
+          {showBooking && selected && (
+            <VisitBookingForm
+              snapshot={{
+                packageId: selected.id,
+                packageName: selected.nameAr,
+                areaSqm: area,
+                downPct,
+                installmentMonths: months,
+                monthlyInstallment: monthly,
+                totalCost: total,
+              }}
+              onCancel={() => setShowBooking(false)}
+            />
+          )}
         </Reveal>
       </div>
     </section>

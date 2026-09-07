@@ -31,10 +31,10 @@ export default function ServicesPage() {
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
-              href="/contact"
+              href="/packages#calculator"
               className="rounded-full bg-gold-gradient px-8 py-4 font-bold hover:opacity-90 transition"
             >
-              تواصل معنا فورا
+              اطلب معاينة الآن
             </Link>
             <Link
               href="/portfolio"

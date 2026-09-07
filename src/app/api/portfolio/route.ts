@@ -7,6 +7,7 @@ import { portfolioProjects } from "@/db/schema";
 
 const schema = z.object({
   nameAr: z.string().min(2),
+  nameEn: z.string().nullable().optional(),
   category: z.enum(["سكني", "تجاري"]),
   beforeImageUrl: z.string().nullable().optional(),
   afterImageUrl: z.string().nullable().optional(),

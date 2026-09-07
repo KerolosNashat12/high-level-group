@@ -4,7 +4,6 @@ import {
   packages,
   packageFeatures,
   visitRequests,
-  contactMessages,
   siteSettings,
   portfolioProjects,
   weeklyAvailability,
@@ -28,6 +27,19 @@ const DEFAULT_SETTINGS = {
   youtubeEnabled: false,
   linkedinUrl: null as string | null,
   linkedinEnabled: false,
+  heroTitleAr: null as string | null,
+  heroTitleEn: null as string | null,
+  heroSubtitleAr: null as string | null,
+  heroSubtitleEn: null as string | null,
+  aboutTextAr: null as string | null,
+  aboutTextEn: null as string | null,
+  workingHoursAr: null as string | null,
+  workingHoursEn: null as string | null,
+  mapUrl: null as string | null,
+  seoTitleAr: null as string | null,
+  seoTitleEn: null as string | null,
+  seoDescriptionAr: null as string | null,
+  seoDescriptionEn: null as string | null,
 };
 
 export async function getSiteSettings() {
@@ -140,7 +152,9 @@ export async function getPackagesBasic() {
     .select({
       id: packages.id,
       nameAr: packages.nameAr,
+      nameEn: packages.nameEn,
       pricePerMeter: packages.pricePerMeter,
+      downPaymentPct: packages.downPaymentPct,
     })
     .from(packages)
     .orderBy(asc(packages.order));
@@ -159,8 +173,4 @@ export async function getPackageBySlug(slug: string) {
 
 export async function getVisitRequests() {
   return db.select().from(visitRequests).orderBy(desc(visitRequests.createdAt));
-}
-
-export async function getContactMessages() {
-  return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
 }

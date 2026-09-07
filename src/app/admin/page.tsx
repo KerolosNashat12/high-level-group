@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/db";
-import { visitRequests, contactMessages, packages } from "@/db/schema";
-import { Users, Package as PackageIcon, MessageSquare, Clock } from "lucide-react";
+import { visitRequests, packages } from "@/db/schema";
+import { Users, Package as PackageIcon, Clock } from "lucide-react";
 import { desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,6 @@ export default async function AdminOverviewPage() {
     .select({ count: sql<number>`count(*)::int` })
     .from(visitRequests)
     .where(sql`${visitRequests.status} = 'new'`);
-  const [messagesCount] = await db.select({ count: sql<number>`count(*)::int` }).from(contactMessages);
   const [packagesCount] = await db.select({ count: sql<number>`count(*)::int` }).from(packages);
   const recentLeads = await db
     .select()
@@ -23,7 +22,6 @@ export default async function AdminOverviewPage() {
   const cards = [
     { label: "إجمالي طلبات المعاينة", value: leadsCount.count, icon: Users, color: "bg-blue-50 text-blue-600", href: "/admin/leads" },
     { label: "طلبات جديدة", value: newLeadsCount.count, icon: Clock, color: "bg-amber-50 text-amber-600", href: "/admin/leads" },
-    { label: "رسائل التواصل", value: messagesCount.count, icon: MessageSquare, color: "bg-green-50 text-green-600", href: "/admin/messages" },
     { label: "الباقات النشطة", value: packagesCount.count, icon: PackageIcon, color: "bg-gold/10 text-gold", href: "/admin/packages" },
   ];
 
@@ -32,7 +30,7 @@ export default async function AdminOverviewPage() {
       <h1 className="text-2xl font-extrabold text-ink">نظرة عامة</h1>
       <p className="text-sm text-ink-soft mt-1">ملخص سريع على نشاط الموقع.</p>
 
-      <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {cards.map((c) => (
           <Link
             key={c.label}

@@ -1,13 +1,21 @@
 import { Resend } from "resend";
 
+function fmt(n: number) {
+  return Math.round(n).toLocaleString("ar-EG");
+}
+
 export async function notifyNewVisitRequest(data: {
   name: string;
   phone: string;
   city: string;
-  area?: string | null;
-  packageName?: string | null;
-  preferredDate?: string | null;
-  preferredTime?: string | null;
+  packageName: string;
+  areaSqm: number;
+  downPct: number;
+  installmentMonths: number;
+  monthlyInstallment: number;
+  totalCost: number;
+  preferredDate: string;
+  preferredTime: string;
   notes?: string | null;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -25,16 +33,22 @@ export async function notifyNewVisitRequest(data: {
     await resend.emails.send({
       from: "High Level Group <onboarding@resend.dev>",
       to: notifyEmail,
-      subject: `طلب معاينة جديد من ${data.name}`,
+      subject: `طلب معاينة جديد من ${data.name} — باقة ${data.packageName}`,
       html: `
         <div dir="rtl" style="font-family: Tajawal, Arial, sans-serif;">
           <h2>طلب معاينة جديد 🏠</h2>
           <p><strong>الاسم:</strong> ${data.name}</p>
           <p><strong>الهاتف:</strong> ${data.phone}</p>
-          <p><strong>المدينة:</strong> ${data.city}</p>
-          ${data.area ? `<p><strong>المنطقة:</strong> ${data.area}</p>` : ""}
-          ${data.packageName ? `<p><strong>الباقة المطلوبة:</strong> ${data.packageName}</p>` : ""}
-          ${data.preferredDate ? `<p><strong>التاريخ المفضل:</strong> ${data.preferredDate}${data.preferredTime ? ` - ${data.preferredTime}` : ""}</p>` : ""}
+          <p><strong>المحافظة:</strong> ${data.city}</p>
+          <hr />
+          <p><strong>الباقة:</strong> ${data.packageName}</p>
+          <p><strong>المساحة:</strong> ${fmt(data.areaSqm)} م²</p>
+          <p><strong>مقدم التعاقد:</strong> ${data.downPct}%</p>
+          <p><strong>مدة التقسيط:</strong> ${data.installmentMonths} شهر</p>
+          <p><strong>القسط الشهري التقديري:</strong> ${fmt(data.monthlyInstallment)} ج.م</p>
+          <p><strong>التكلفة التقديرية للمشروع:</strong> ${fmt(data.totalCost)} ج.م</p>
+          <hr />
+          <p><strong>موعد المعاينة:</strong> ${data.preferredDate} - ${data.preferredTime}</p>
           ${data.notes ? `<p><strong>ملاحظات:</strong> ${data.notes}</p>` : ""}
           <p style="margin-top:16px;">تحقق من لوحة التحكم لمتابعة الطلب.</p>
         </div>

@@ -1,6 +1,5 @@
-import { getPackagesWithFeatures, getPortfolioProjects } from "@/lib/data";
+import { getPackagesWithFeatures, getPortfolioProjects, getSiteSettings } from "@/lib/data";
 import PackageCard from "@/components/PackageCard";
-import VisitRequestForm from "@/components/VisitRequestForm";
 import Hero from "@/components/Hero";
 import WhyUs from "@/components/WhyUs";
 import Partners from "@/components/Partners";
@@ -18,14 +17,15 @@ import { Star } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [packages, portfolioProjects] = await Promise.all([
+  const [packages, portfolioProjects, settings] = await Promise.all([
     getPackagesWithFeatures(),
     getPortfolioProjects(),
+    getSiteSettings(),
   ]);
 
   return (
     <>
-      <Hero />
+      <Hero title={settings.heroTitleAr} subtitle={settings.heroSubtitleAr} />
       <WhyUs />
       <Partners />
       <ServicesGrid compact />
@@ -67,17 +67,6 @@ export default async function HomePage() {
 
       <FaqAccordion />
       <CoverageAreas />
-
-      {/* Visit request */}
-      <section id="visit-request" className="py-24">
-        <div className="container-page max-w-2xl">
-          <Reveal className="rounded-3xl border border-black/10 p-8 sm:p-10 shadow-sm">
-            <VisitRequestForm
-              packages={packages.map((p) => ({ id: p.id, nameAr: p.nameAr }))}
-            />
-          </Reveal>
-        </div>
-      </section>
     </>
   );
 }

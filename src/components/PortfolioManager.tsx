@@ -7,6 +7,7 @@ import ImageUploadField from "@/components/ImageUploadField";
 type Project = {
   id: number;
   nameAr: string;
+  nameEn: string | null;
   category: string;
   beforeImageUrl: string | null;
   afterImageUrl: string | null;
@@ -38,6 +39,7 @@ function ProjectCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nameAr: form.nameAr,
+          nameEn: form.nameEn,
           category: form.category,
           beforeImageUrl: form.beforeImageUrl,
           afterImageUrl: form.afterImageUrl,
@@ -68,10 +70,11 @@ function ProjectCard({
 
   return (
     <div className="bg-white rounded-2xl border border-black/5 p-6">
-      <div className="flex items-start justify-between gap-3 mb-4">
+      <div className="flex items-start justify-between gap-3 mb-2">
         <input
           value={form.nameAr}
           onChange={(e) => update("nameAr", e.target.value)}
+          placeholder="اسم المشروع (عربي)"
           className="font-bold text-lg text-ink border-b border-transparent hover:border-black/10 focus:border-gold outline-none bg-transparent flex-1"
         />
         <button
@@ -83,6 +86,14 @@ function ProjectCard({
           {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
         </button>
       </div>
+
+      <input
+        value={form.nameEn ?? ""}
+        onChange={(e) => update("nameEn", e.target.value as never)}
+        placeholder="Project name (English)"
+        dir="ltr"
+        className="w-full mb-4 text-sm text-ink-soft border-b border-transparent hover:border-black/10 focus:border-gold outline-none bg-transparent"
+      />
 
       <div className="flex items-center gap-4 mb-4 text-sm">
         <select

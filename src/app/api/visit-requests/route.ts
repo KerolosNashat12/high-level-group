@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { visitRequests, packages } from "@/db/schema";
+import { visitRequests } from "@/db/schema";
 import { notifyNewVisitRequest } from "@/lib/email";
 import { getAvailabilityForDate } from "@/lib/data";
 
+// A visit request can now ONLY be created from the installment calculator's
+// booking flow, so the full package snapshot is required — no request can be
+// submitted without it.
 const schema = z.object({
   name: z.string().min(2, "الاسم قصير جدًا"),
   phone: z.string().regex(/^01[0-9]{9}$/, "رقم موبايل غير صحيح"),
   city: z.string().min(2, "اختر المحافظة"),
-  area: z.string().optional().nullable(),
-  propertyType: z.string().optional().nullable(),
-  packageId: z.number().nullable().optional(),
-  preferredDate: z.string().optional().nullable(),
-  preferredTime: z.string().optional().nullable(),
+  preferredDate: z.string().min(1, "اختر تاريخ المعاينة"),
+  preferredTime: z.string().min(1, "اختر موعد المعاينة"),
   notes: z.string().optional().nullable(),
+  packageId: z.number({ error: "اختر باقة" }),
+  packageName: z.string().min(1, "اختر باقة"),
+  areaSqm: z.number().positive("مساحة غير صحيحة"),
+  downPct: z.number().min(0).max(100),
+  installmentMonths: z.number().positive(),
+  monthlyInstallment: z.number().nonnegative(),
+  totalCost: z.number().nonnegative(),
 });
 
 export async function POST(req: NextRequest) {
@@ -35,22 +41,20 @@ export async function POST(req: NextRequest) {
     // Re-validate the requested slot server-side — the client already filters
     // this, but a second visitor could have taken it (or an admin could have
     // just closed the day) between page-load and submit.
-    if (data.preferredDate) {
-      const availability = await getAvailabilityForDate(data.preferredDate);
-      if (!availability.open) {
+    const availability = await getAvailabilityForDate(data.preferredDate);
+    if (!availability.open) {
+      return NextResponse.json(
+        { error: availability.reason || "هذا اليوم غير متاح، اختر يوم آخر" },
+        { status: 409 }
+      );
+    }
+    if (availability.slots.length > 0) {
+      const slot = availability.slots.find((s) => s.time === data.preferredTime);
+      if (!slot || slot.taken) {
         return NextResponse.json(
-          { error: availability.reason || "هذا اليوم غير متاح، اختر يوم آخر" },
+          { error: "هذا الموعد تم حجزه للتو، اختر موعدًا آخر" },
           { status: 409 }
         );
-      }
-      if (data.preferredTime && availability.slots.length > 0) {
-        const slot = availability.slots.find((s) => s.time === data.preferredTime);
-        if (!slot || slot.taken) {
-          return NextResponse.json(
-            { error: "هذا الموعد تم حجزه للتو، اختر موعدًا آخر" },
-            { status: 409 }
-          );
-        }
       }
     }
 
@@ -60,32 +64,30 @@ export async function POST(req: NextRequest) {
         name: data.name,
         phone: data.phone,
         city: data.city,
-        area: data.area || null,
-        propertyType: data.propertyType || null,
-        packageId: data.packageId || null,
-        preferredDate: data.preferredDate ? new Date(data.preferredDate) : null,
-        preferredDateStr: data.preferredDate || null,
-        preferredTime: data.preferredTime || null,
+        packageId: data.packageId,
+        packageNameSnapshot: data.packageName,
+        areaSqm: Math.round(data.areaSqm),
+        downPct: Math.round(data.downPct),
+        installmentMonths: Math.round(data.installmentMonths),
+        monthlyInstallment: Math.round(data.monthlyInstallment),
+        totalCost: Math.round(data.totalCost),
+        preferredDate: new Date(data.preferredDate),
+        preferredDateStr: data.preferredDate,
+        preferredTime: data.preferredTime,
         notes: data.notes || null,
       })
       .returning();
-
-    let packageName: string | null = null;
-    if (data.packageId) {
-      const [pkg] = await db
-        .select()
-        .from(packages)
-        .where(eq(packages.id, data.packageId))
-        .limit(1);
-      packageName = pkg?.nameAr ?? null;
-    }
 
     await notifyNewVisitRequest({
       name: data.name,
       phone: data.phone,
       city: data.city,
-      area: data.area,
-      packageName,
+      packageName: data.packageName,
+      areaSqm: data.areaSqm,
+      downPct: data.downPct,
+      installmentMonths: data.installmentMonths,
+      monthlyInstallment: data.monthlyInstallment,
+      totalCost: data.totalCost,
       preferredDate: data.preferredDate,
       preferredTime: data.preferredTime,
       notes: data.notes,

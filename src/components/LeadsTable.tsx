@@ -7,9 +7,12 @@ type Lead = {
   name: string;
   phone: string;
   city: string;
-  area: string | null;
-  propertyType: string | null;
-  packageName: string | null;
+  packageNameSnapshot: string | null;
+  areaSqm: number | null;
+  downPct: number | null;
+  installmentMonths: number | null;
+  monthlyInstallment: number | null;
+  totalCost: number | null;
   preferredDate: string | null;
   preferredTime: string | null;
   notes: string | null;
@@ -25,6 +28,11 @@ const statusOptions = [
   { value: "cancelled", label: "ملغي", color: "bg-red-50 text-red-700" },
 ];
 
+function fmt(n: number | null) {
+  if (n === null || n === undefined) return "—";
+  return Math.round(n).toLocaleString("ar-EG");
+}
+
 export default function LeadsTable({ leads }: { leads: Lead[] }) {
   const [rows, setRows] = useState(leads);
 
@@ -39,14 +47,15 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
 
   return (
     <div className="overflow-x-auto bg-white rounded-2xl border border-black/5">
-      <table className="w-full text-sm min-w-[800px]">
+      <table className="w-full text-sm min-w-[1000px]">
         <thead>
           <tr className="text-right text-ink-soft border-b border-black/5 bg-black/[0.015]">
             <th className="p-4 font-medium">الاسم</th>
             <th className="p-4 font-medium">الهاتف</th>
-            <th className="p-4 font-medium">المدينة / المنطقة</th>
-            <th className="p-4 font-medium">الباقة</th>
-            <th className="p-4 font-medium">التاريخ المفضل</th>
+            <th className="p-4 font-medium">المحافظة</th>
+            <th className="p-4 font-medium">الباقة والمساحة</th>
+            <th className="p-4 font-medium">تفاصيل التقسيط</th>
+            <th className="p-4 font-medium">موعد المعاينة</th>
             <th className="p-4 font-medium">الحالة</th>
           </tr>
         </thead>
@@ -64,11 +73,21 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                 <td className="p-4 text-ink-soft" dir="ltr">
                   <a href={`tel:${lead.phone}`} className="hover:text-gold">{lead.phone}</a>
                 </td>
+                <td className="p-4 text-ink-soft">{lead.city}</td>
                 <td className="p-4 text-ink-soft">
-                  {lead.city}
-                  {lead.area && <span className="text-xs"> — {lead.area}</span>}
+                  <span className="font-bold text-gold">{lead.packageNameSnapshot ?? "—"}</span>
+                  {lead.areaSqm && <span className="text-xs block mt-0.5">{fmt(lead.areaSqm)} م²</span>}
                 </td>
-                <td className="p-4 text-ink-soft">{lead.packageName ?? "—"}</td>
+                <td className="p-4 text-ink-soft text-xs leading-relaxed">
+                  {lead.downPct != null && <div>مقدم {lead.downPct}%</div>}
+                  {lead.installmentMonths != null && <div>{lead.installmentMonths} شهر</div>}
+                  {lead.monthlyInstallment != null && (
+                    <div className="font-bold text-ink">{fmt(lead.monthlyInstallment)} ج.م/ش</div>
+                  )}
+                  {lead.totalCost != null && (
+                    <div className="text-ink-soft/70">إجمالي {fmt(lead.totalCost)} ج.م</div>
+                  )}
+                </td>
                 <td className="p-4 text-ink-soft">
                   {lead.preferredDate ? new Date(lead.preferredDate).toLocaleDateString("ar-EG") : "—"}
                   {lead.preferredTime && (
@@ -95,7 +114,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
           })}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-8 text-center text-ink-soft">
+              <td colSpan={7} className="p-8 text-center text-ink-soft">
                 لا توجد طلبات معاينة بعد
               </td>
             </tr>
