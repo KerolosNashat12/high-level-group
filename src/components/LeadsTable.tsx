@@ -17,6 +17,8 @@ type Lead = {
   preferredDate: string | null;
   preferredTime: string | null;
   notes: string | null;
+  mediaType: string | null;
+  mediaUrls: string[] | null;
   status: string;
   createdAt: string;
 };
@@ -57,6 +59,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
             <th className="p-4 font-medium">الباقة والمساحة</th>
             <th className="p-4 font-medium">تفاصيل التقسيط</th>
             <th className="p-4 font-medium">موعد المعاينة</th>
+            <th className="p-4 font-medium">صور/فيديو الشقة</th>
             <th className="p-4 font-medium">الحالة</th>
           </tr>
         </thead>
@@ -101,6 +104,35 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                   )}
                 </td>
                 <td className="p-4">
+                  {lead.mediaUrls && lead.mediaUrls.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 max-w-[140px]">
+                      {lead.mediaType === "video" ? (
+                        <a
+                          href={lead.mediaUrls[0]}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-bold text-gold underline underline-offset-2"
+                        >
+                          مشاهدة الفيديو
+                        </a>
+                      ) : (
+                        lead.mediaUrls.map((url, i) => (
+                          <a key={url} href={url} target="_blank" rel="noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={url}
+                              alt={`صورة ${i + 1}`}
+                              className="w-10 h-10 rounded-lg object-cover border border-black/10"
+                            />
+                          </a>
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-ink-soft/50">—</span>
+                  )}
+                </td>
+                <td className="p-4">
                   <select
                     value={lead.status}
                     onChange={(e) => updateStatus(lead.id, e.target.value)}
@@ -118,7 +150,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
           })}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={7} className="p-8 text-center text-ink-soft">
+              <td colSpan={8} className="p-8 text-center text-ink-soft">
                 لا توجد طلبات معاينة بعد
               </td>
             </tr>

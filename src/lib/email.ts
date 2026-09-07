@@ -18,6 +18,8 @@ export async function notifyNewVisitRequest(data: {
   preferredDate: string;
   preferredTime: string;
   notes?: string | null;
+  mediaType?: "video" | "photo" | null;
+  mediaUrls?: string[] | null;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const notifyEmail = process.env.NOTIFY_EMAIL;
@@ -52,6 +54,12 @@ export async function notifyNewVisitRequest(data: {
           <hr />
           <p><strong>موعد المعاينة:</strong> ${data.preferredDate} - ${data.preferredTime}</p>
           ${data.notes ? `<p><strong>ملاحظات:</strong> ${data.notes}</p>` : ""}
+          ${
+            data.mediaUrls && data.mediaUrls.length > 0
+              ? `<p><strong>${data.mediaType === "video" ? "فيديو الشقة" : "صور الشقة"}:</strong></p>
+                 <ul>${data.mediaUrls.map((u) => `<li><a href="${u}">${u}</a></li>`).join("")}</ul>`
+              : ""
+          }
           <p style="margin-top:16px;">تحقق من لوحة التحكم لمتابعة الطلب.</p>
         </div>
       `,

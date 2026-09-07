@@ -5,6 +5,7 @@ import {
   integer,
   boolean,
   serial,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -68,6 +69,11 @@ export const visitRequests = pgTable("visit_requests", {
   // "HH:MM" — the booked time slot, matched against weeklyAvailability.slots.
   preferredTime: text("preferred_time"),
   notes: text("notes"),
+  // Optional apartment media the customer attaches — either one video OR up
+  // to 5 photos (enforced in the API route / client), never both. Stored as
+  // Vercel Blob URLs.
+  mediaType: text("media_type"), // "video" | "photo" | null
+  mediaUrls: jsonb("media_urls").$type<string[]>(),
   status: text("status").notNull().default("new"), // new, contacted, scheduled, done, cancelled
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

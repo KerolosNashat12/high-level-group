@@ -23,6 +23,11 @@ const schema = z.object({
   installmentMonths: z.number().positive(),
   monthlyInstallment: z.number().nonnegative(),
   totalCost: z.number().nonnegative(),
+  // Optional apartment media — either "video" (one file) or "photo" (up to
+  // 5), never both. Uploaded to Vercel Blob client-side before this request;
+  // we only ever receive the resulting URLs.
+  mediaType: z.enum(["video", "photo"]).optional().nullable(),
+  mediaUrls: z.array(z.string().url()).max(5).optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -77,6 +82,8 @@ export async function POST(req: NextRequest) {
         preferredDateStr: data.preferredDate,
         preferredTime: data.preferredTime,
         notes: data.notes || null,
+        mediaType: data.mediaType || null,
+        mediaUrls: data.mediaUrls && data.mediaUrls.length > 0 ? data.mediaUrls : null,
       })
       .returning();
 
@@ -94,6 +101,8 @@ export async function POST(req: NextRequest) {
       preferredDate: data.preferredDate,
       preferredTime: data.preferredTime,
       notes: data.notes,
+      mediaType: data.mediaType,
+      mediaUrls: data.mediaUrls,
     });
 
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });

@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Loader2, CalendarX2 } from "lucide-react";
+import { upload } from "@vercel/blob/client";
+import { CheckCircle2, Loader2, CalendarX2, Video, Image as ImageIcon, X } from "lucide-react";
 
 type Slot = { time: string; taken: boolean };
 type District = { id: number; nameAr: string; nameEn: string | null; enabled: boolean };
 type Governorate = { id: number; nameAr: string; nameEn: string | null; enabled: boolean; districts: District[] };
 
 const OTHER_DISTRICT = "__other__";
+
+// Kept in sync with the caps enforced server-side in
+// /api/visit-requests/upload/route.ts.
+const MAX_VIDEO_MB = 15;
+const MAX_PHOTO_MB = 3;
+const MAX_PHOTOS = 5;
 
 export type BookingSnapshot = {
   packageId: number;
@@ -94,6 +101,82 @@ export default function VisitBookingForm({
     };
   }, [preferredDate]);
 
+  // Optional apartment media — either one video OR up to 5 photos, never
+  // both. Purely optional: never affects canSubmit.
+  const [mediaMode, setMediaMode] = useState<"none" | "video" | "photo">("none");
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaError, setMediaError] = useState("");
+
+  function resetMedia() {
+    setMediaMode("none");
+    setMediaFiles([]);
+    setMediaError("");
+  }
+
+  function toggleMediaMode(mode: "video" | "photo") {
+    setMediaFiles([]);
+    setMediaError("");
+    setMediaMode((current) => (current === mode ? "none" : mode));
+  }
+
+  function handleMediaSelect(files: FileList | null, kind: "video" | "photo") {
+    if (!files || files.length === 0) return;
+    setMediaError("");
+
+    if (kind === "video") {
+      const file = files[0];
+      if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
+        setMediaError(
+          isEn ? `Video must be under ${MAX_VIDEO_MB}MB` : `الفيديو لازم يكون أقل من ${MAX_VIDEO_MB} ميجا`
+        );
+        setMediaFiles([]);
+        return;
+      }
+      setMediaFiles([file]);
+    } else {
+      const chosen = Array.from(files).slice(0, MAX_PHOTOS);
+      const tooBig = chosen.find((f) => f.size > MAX_PHOTO_MB * 1024 * 1024);
+      if (tooBig) {
+        setMediaError(
+          isEn
+            ? `Each photo must be under ${MAX_PHOTO_MB}MB`
+            : `كل صورة لازم تكون أقل من ${MAX_PHOTO_MB} ميجا`
+        );
+        setMediaFiles([]);
+        return;
+      }
+      setMediaFiles(chosen);
+    }
+  }
+
+  async function uploadMedia(): Promise<{ mediaType: "video" | "photo" | null; mediaUrls: string[] }> {
+    if (mediaMode === "none" || mediaFiles.length === 0) {
+      return { mediaType: null, mediaUrls: [] };
+    }
+    setMediaUploading(true);
+    setMediaError("");
+    try {
+      const urls: string[] = [];
+      for (const file of mediaFiles) {
+        const result = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/visit-requests/upload",
+          clientPayload: mediaMode,
+        });
+        urls.push(result.url);
+      }
+      return { mediaType: mediaMode, mediaUrls: urls };
+    } catch (err) {
+      setMediaError(
+        err instanceof Error ? err.message : isEn ? "Media upload failed" : "فشل رفع الملف"
+      );
+      throw err;
+    } finally {
+      setMediaUploading(false);
+    }
+  }
+
   const needsSlotChoice = Boolean(availability?.open && availability.slots.length > 0);
   const canSubmit = Boolean(
     selectedGov &&
@@ -111,6 +194,16 @@ export default function VisitBookingForm({
 
     const form = e.currentTarget;
     const data = new FormData(form);
+
+    let media: { mediaType: "video" | "photo" | null; mediaUrls: string[] };
+    try {
+      media = await uploadMedia();
+    } catch {
+      setStatus("error");
+      setErrorMsg(isEn ? "Media upload failed, please try again" : "فشل رفع الصور/الفيديو، حاول مرة أخرى");
+      return;
+    }
+
     const payload = {
       name: data.get("name"),
       phone: data.get("phone"),
@@ -126,6 +219,8 @@ export default function VisitBookingForm({
       installmentMonths: snapshot.installmentMonths,
       monthlyInstallment: Math.round(snapshot.monthlyInstallment),
       totalCost: Math.round(snapshot.totalCost),
+      mediaType: media.mediaType,
+      mediaUrls: media.mediaUrls,
     };
 
     try {
@@ -146,6 +241,7 @@ export default function VisitBookingForm({
       setGovernorateId("");
       setDistrictChoice("");
       setCustomDistrict("");
+      resetMedia();
     } catch (err) {
       setStatus("error");
       setErrorMsg(
@@ -345,6 +441,81 @@ export default function VisitBookingForm({
           </div>
         )}
 
+        {/* Optional apartment media — never required to submit */}
+        <div className="sm:col-span-2 rounded-xl border border-dashed border-black/15 bg-white p-4">
+          <div className="text-xs font-bold text-ink-soft mb-2">
+            {isEn ? "Apartment photos or video (optional)" : "صور أو فيديو الشقة (اختياري)"}
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button
+              type="button"
+              onClick={() => toggleMediaMode("photo")}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                mediaMode === "photo"
+                  ? "bg-gold-gradient text-white"
+                  : "border border-black/10 text-ink-soft hover:border-gold/40"
+              }`}
+            >
+              <ImageIcon size={13} />
+              {isEn ? `Photos (up to ${MAX_PHOTOS})` : `صور (حتى ${MAX_PHOTOS})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleMediaMode("video")}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                mediaMode === "video"
+                  ? "bg-gold-gradient text-white"
+                  : "border border-black/10 text-ink-soft hover:border-gold/40"
+              }`}
+            >
+              <Video size={13} />
+              {isEn ? "Video" : "فيديو"}
+            </button>
+            {mediaMode !== "none" && (
+              <button
+                type="button"
+                onClick={resetMedia}
+                className="flex items-center gap-1 text-xs text-ink-soft/60 hover:text-ink-soft"
+              >
+                <X size={13} />
+                {isEn ? "Clear" : "إلغاء الاختيار"}
+              </button>
+            )}
+          </div>
+
+          {mediaMode === "photo" && (
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => handleMediaSelect(e.target.files, "photo")}
+              className="text-xs text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-gold/10 file:text-gold file:font-bold file:px-3 file:py-1.5 file:text-xs"
+            />
+          )}
+          {mediaMode === "video" && (
+            <input
+              type="file"
+              accept="video/*"
+              onChange={(e) => handleMediaSelect(e.target.files, "video")}
+              className="text-xs text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-gold/10 file:text-gold file:font-bold file:px-3 file:py-1.5 file:text-xs"
+            />
+          )}
+
+          {mediaFiles.length > 0 && !mediaError && (
+            <p className="text-[11px] text-ink-soft/70 mt-2">
+              {isEn
+                ? `${mediaFiles.length} file(s) selected — will upload when you submit.`
+                : `تم اختيار ${mediaFiles.length} ملف — هيترفع لما تأكد الطلب.`}
+            </p>
+          )}
+          {mediaError && <p className="text-[11px] text-red-600 mt-2">{mediaError}</p>}
+          <p className="text-[10px] text-ink-soft/50 mt-2">
+            {isEn
+              ? `Video up to ${MAX_VIDEO_MB}MB, or up to ${MAX_PHOTOS} photos at ${MAX_PHOTO_MB}MB each.`
+              : `الفيديو لحد ${MAX_VIDEO_MB} ميجا، أو حتى ${MAX_PHOTOS} صور كل واحدة ${MAX_PHOTO_MB} ميجا.`}
+          </p>
+        </div>
+
         <textarea
           name="notes"
           placeholder={isEn ? "Additional notes (optional)" : "ملاحظات إضافية (اختياري)"}
@@ -358,11 +529,15 @@ export default function VisitBookingForm({
 
         <button
           type="submit"
-          disabled={status === "loading" || !canSubmit}
+          disabled={status === "loading" || mediaUploading || !canSubmit}
           className="sm:col-span-2 rounded-xl bg-gold-gradient text-white font-bold py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-60"
         >
-          {status === "loading" && <Loader2 className="animate-spin" size={18} />}
-          {status === "loading"
+          {(status === "loading" || mediaUploading) && <Loader2 className="animate-spin" size={18} />}
+          {mediaUploading
+            ? isEn
+              ? "Uploading media..."
+              : "جارِ رفع الصور/الفيديو..."
+            : status === "loading"
             ? isEn
               ? "Sending..."
               : "جارِ الإرسال..."
