@@ -1,10 +1,105 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Loader2, CheckCircle2, Plus, Trash2, Ban } from "lucide-react";
+import { Save, Loader2, CheckCircle2, Plus, Trash2, Ban, Copy, X } from "lucide-react";
 
 type DayRow = { dayOfWeek: number; label: string; isOpen: boolean; slots: string };
 type BlockedDate = { id: number; date: string; reason: string | null };
+
+function parseSlots(slots: string): string[] {
+  return slots
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .sort();
+}
+
+function DayRowEditor({
+  day,
+  onToggleOpen,
+  onSlotsChange,
+  onCopyToAll,
+}: {
+  day: DayRow;
+  onToggleOpen: (open: boolean) => void;
+  onSlotsChange: (slots: string) => void;
+  onCopyToAll: () => void;
+}) {
+  const [newTime, setNewTime] = useState("10:00");
+  const times = parseSlots(day.slots);
+
+  function addTime() {
+    if (!newTime || times.includes(newTime)) return;
+    onSlotsChange(parseSlots([...times, newTime].join(",")).join(","));
+  }
+
+  function removeTime(t: string) {
+    onSlotsChange(times.filter((x) => x !== t).join(","));
+  }
+
+  return (
+    <div className={`rounded-xl border p-4 transition ${day.isOpen ? "border-black/10" : "border-black/5 bg-black/[0.015]"}`}>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <label className="flex items-center gap-2 font-bold text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={day.isOpen}
+            onChange={(e) => onToggleOpen(e.target.checked)}
+          />
+          {day.label}
+        </label>
+        {day.isOpen && times.length > 0 && (
+          <button
+            type="button"
+            onClick={onCopyToAll}
+            className="flex items-center gap-1 text-[11px] text-ink-soft hover:text-gold"
+            title="طبّق نفس المواعيد على كل الأيام المفتوحة"
+          >
+            <Copy size={12} /> تطبيق على كل الأيام المفتوحة
+          </button>
+        )}
+      </div>
+
+      {day.isOpen && (
+        <>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {times.length === 0 && (
+              <span className="text-xs text-ink-soft/60">لا توجد مواعيد مضافة لهذا اليوم بعد</span>
+            )}
+            {times.map((t) => (
+              <span
+                key={t}
+                className="flex items-center gap-1.5 rounded-full bg-gold/10 text-gold text-xs font-bold px-3 py-1.5"
+                dir="ltr"
+              >
+                {t}
+                <button type="button" onClick={() => removeTime(t)} className="hover:text-red-600">
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="time"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+              className="rounded-lg border border-black/10 px-2.5 py-1.5 text-sm focus:border-gold outline-none"
+              dir="ltr"
+            />
+            <button
+              type="button"
+              onClick={addTime}
+              className="flex items-center gap-1 rounded-lg bg-black/5 text-ink text-xs font-bold px-3 py-1.5 hover:bg-gold/10 hover:text-gold transition"
+            >
+              <Plus size={12} /> إضافة موعد
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function AvailabilityManager({
   initialWeek,
@@ -22,6 +117,13 @@ export default function AvailabilityManager({
 
   function updateDay<K extends keyof DayRow>(dayOfWeek: number, key: K, value: DayRow[K]) {
     setWeek((w) => w.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, [key]: value } : d)));
+    setStatus("idle");
+  }
+
+  function copyToAllOpenDays(sourceDayOfWeek: number) {
+    const source = week.find((d) => d.dayOfWeek === sourceDayOfWeek);
+    if (!source) return;
+    setWeek((w) => w.map((d) => (d.isOpen ? { ...d, slots: source.slots } : d)));
     setStatus("idle");
   }
 
@@ -73,38 +175,21 @@ export default function AvailabilityManager({
     <div className="space-y-8">
       <section className="bg-white rounded-2xl border border-black/5 p-6">
         <h2 className="font-bold text-ink mb-4">الجدول الأسبوعي</h2>
-        <div className="space-y-3">
+        <div className="grid sm:grid-cols-2 gap-3">
           {week.map((day) => (
-            <div
+            <DayRowEditor
               key={day.dayOfWeek}
-              className="flex flex-wrap items-center gap-3 rounded-xl border border-black/5 p-3"
-            >
-              <label className="flex items-center gap-2 w-28 shrink-0 font-bold text-sm text-ink">
-                <input
-                  type="checkbox"
-                  checked={day.isOpen}
-                  onChange={(e) => updateDay(day.dayOfWeek, "isOpen", e.target.checked)}
-                />
-                {day.label}
-              </label>
-              <input
-                value={day.slots}
-                onChange={(e) => updateDay(day.dayOfWeek, "slots", e.target.value)}
-                disabled={!day.isOpen}
-                placeholder="10:00,12:00,14:00,16:00"
-                dir="ltr"
-                className="flex-1 min-w-[200px] rounded-lg border border-black/10 px-3 py-2 text-sm focus:border-gold outline-none disabled:opacity-40 disabled:bg-black/[0.02]"
-              />
-            </div>
+              day={day}
+              onToggleOpen={(open) => updateDay(day.dayOfWeek, "isOpen", open)}
+              onSlotsChange={(slots) => updateDay(day.dayOfWeek, "slots", slots)}
+              onCopyToAll={() => copyToAllOpenDays(day.dayOfWeek)}
+            />
           ))}
         </div>
-        <p className="text-[11px] text-ink-soft/70 mt-3">
-          اكتب مواعيد اليوم مفصولة بفاصلة بصيغة 24 ساعة، مثال: 10:00,12:00,14:00,16:00
-        </p>
         <button
           onClick={saveWeek}
           disabled={status === "saving"}
-          className="mt-4 flex items-center gap-2 rounded-xl bg-gold-gradient text-white text-sm font-bold px-6 py-3 disabled:opacity-60"
+          className="mt-5 flex items-center gap-2 rounded-xl bg-gold-gradient text-white text-sm font-bold px-6 py-3 disabled:opacity-60"
         >
           {status === "saving" && <Loader2 className="animate-spin" size={16} />}
           {status === "saved" && <CheckCircle2 size={16} />}

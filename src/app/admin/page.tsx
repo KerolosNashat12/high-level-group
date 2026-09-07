@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/db";
 import { visitRequests, contactMessages, packages } from "@/db/schema";
 import { Users, Package as PackageIcon, MessageSquare, Clock } from "lucide-react";
@@ -20,10 +21,10 @@ export default async function AdminOverviewPage() {
     .limit(5);
 
   const cards = [
-    { label: "إجمالي طلبات المعاينة", value: leadsCount.count, icon: Users, color: "bg-blue-50 text-blue-600" },
-    { label: "طلبات جديدة", value: newLeadsCount.count, icon: Clock, color: "bg-amber-50 text-amber-600" },
-    { label: "رسائل التواصل", value: messagesCount.count, icon: MessageSquare, color: "bg-green-50 text-green-600" },
-    { label: "الباقات النشطة", value: packagesCount.count, icon: PackageIcon, color: "bg-gold/10 text-gold" },
+    { label: "إجمالي طلبات المعاينة", value: leadsCount.count, icon: Users, color: "bg-blue-50 text-blue-600", href: "/admin/leads" },
+    { label: "طلبات جديدة", value: newLeadsCount.count, icon: Clock, color: "bg-amber-50 text-amber-600", href: "/admin/leads" },
+    { label: "رسائل التواصل", value: messagesCount.count, icon: MessageSquare, color: "bg-green-50 text-green-600", href: "/admin/messages" },
+    { label: "الباقات النشطة", value: packagesCount.count, icon: PackageIcon, color: "bg-gold/10 text-gold", href: "/admin/packages" },
   ];
 
   return (
@@ -33,13 +34,17 @@ export default async function AdminOverviewPage() {
 
       <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map((c) => (
-          <div key={c.label} className="bg-white rounded-2xl border border-black/5 p-6">
+          <Link
+            key={c.label}
+            href={c.href}
+            className="bg-white rounded-2xl border border-black/5 p-6 hover:border-gold/40 transition"
+          >
             <span className={`inline-flex p-3 rounded-xl ${c.color}`}>
               <c.icon size={20} />
             </span>
             <div className="text-3xl font-extrabold text-ink mt-4">{c.value}</div>
             <div className="text-sm text-ink-soft mt-1">{c.label}</div>
-          </div>
+          </Link>
         ))}
       </div>
 
