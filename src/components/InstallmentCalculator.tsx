@@ -12,6 +12,68 @@ function fmt(n: number) {
   return Math.round(n).toLocaleString("ar-EG");
 }
 
+function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  onChange: (v: number) => void;
+}) {
+  // The input itself is forced to `direction: ltr` in globals.css, so its
+  // thumb always travels min→max left→right — this percentage must match
+  // that same left-to-right math, independent of the page's RTL layout.
+  const pct = ((value - min) / (max - min)) * 100;
+
+  return (
+    <div>
+      <div className="flex justify-between text-sm font-bold text-ink mb-2">
+        <span>{label}</span>
+        <span className="text-gold">
+          {fmt(value)} {unit}
+        </span>
+      </div>
+
+      <div className="relative pt-7">
+        <div
+          className="absolute top-0 -translate-x-1/2 rounded-lg bg-ink text-white text-[11px] font-bold px-2 py-1 shadow-md transition-[left] duration-100 pointer-events-none"
+          style={{ left: `${pct}%` }}
+        >
+          {fmt(value)} {unit}
+          <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-ink" />
+        </div>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={{ ["--range-progress" as string]: `${pct}%` }}
+          className="w-full"
+        />
+      </div>
+      <div className="flex justify-between text-[11px] text-ink-soft mt-1" dir="ltr">
+        <span>
+          {fmt(min)} {unit}
+        </span>
+        <span>
+          {fmt(max)} {unit}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function InstallmentCalculator({ packages }: { packages: Pkg[] }) {
   const [area, setArea] = useState(100);
   const [months, setMonths] = useState(24);
@@ -69,44 +131,26 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
             ))}
           </div>
 
-          <div className="space-y-8">
-            <div>
-              <div className="flex justify-between text-sm font-bold text-ink mb-2">
-                <span>مساحة العقار</span>
-                <span className="text-gold">{area} م²</span>
-              </div>
-              <input
-                type="range"
-                min={60}
-                max={800}
-                step={10}
-                value={area}
-                onChange={(e) => setArea(Number(e.target.value))}
-                style={{ ["--range-progress" as string]: `${((area - 60) / (800 - 60)) * 100}%` }}
-                className="w-full"
-              />
-              <div className="flex justify-between text-[11px] text-ink-soft mt-1">
-                <span>60 م²</span>
-                <span>800 م²</span>
-              </div>
-            </div>
+          <div className="space-y-10">
+            <SliderField
+              label="مساحة العقار"
+              value={area}
+              min={60}
+              max={800}
+              step={10}
+              unit="م²"
+              onChange={setArea}
+            />
 
-            <div>
-              <div className="flex justify-between text-sm font-bold text-ink mb-2">
-                <span>مقدم التعاقد</span>
-                <span className="text-gold">{downPct}%</span>
-              </div>
-              <input
-                type="range"
-                min={10}
-                max={50}
-                step={5}
-                value={downPct}
-                onChange={(e) => setDownPct(Number(e.target.value))}
-                style={{ ["--range-progress" as string]: `${((downPct - 10) / (50 - 10)) * 100}%` }}
-                className="w-full"
-              />
-            </div>
+            <SliderField
+              label="مقدم التعاقد"
+              value={downPct}
+              min={10}
+              max={50}
+              step={5}
+              unit="%"
+              onChange={setDownPct}
+            />
 
             <div>
               <div className="text-sm font-bold text-ink mb-2">مدة التقسيط المفضلة</div>

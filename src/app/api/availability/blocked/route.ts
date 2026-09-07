@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { z } from "zod";
+import { authOptions } from "@/lib/auth";
+import { db } from "@/db";
+import { blockedDates } from "@/db/schema";
+
+const schema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صحيح"),
+  reason: z.string().optional().nullable(),
+});
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message || "بيانات غير صحيحة" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const [created] = await db
+      .insert(blockedDates)
+      .values({ date: parsed.data.date, reason: parsed.data.reason || null })
+      .returning();
+    return NextResponse.json({ ok: true, blocked: created });
+  } catch {
+    return NextResponse.json({ error: "هذا اليوم مُقفل بالفعل" }, { status: 409 });
+  }
+}

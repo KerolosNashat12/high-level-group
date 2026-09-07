@@ -1,11 +1,16 @@
 import { Phone, Mail, MapPin } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
+import { getSiteSettings } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "تواصل معنا | هاى ليفيل جروب",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
   return (
     <>
       <section className="bg-ink text-white py-16">
@@ -26,21 +31,21 @@ export default function ContactPage() {
                 <span className="p-3 rounded-full bg-gold/10 text-gold"><Phone size={20} /></span>
                 <div>
                   <div className="text-sm text-ink-soft">اتصل بنا</div>
-                  <div className="font-bold">01080146022</div>
+                  <div className="font-bold">{settings.contactPhone}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="p-3 rounded-full bg-gold/10 text-gold"><Mail size={20} /></span>
                 <div>
                   <div className="text-sm text-ink-soft">راسلنا</div>
-                  <div className="font-bold">info@highlevel.com</div>
+                  <div className="font-bold">{settings.contactEmail}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="p-3 rounded-full bg-gold/10 text-gold"><MapPin size={20} /></span>
                 <div>
                   <div className="text-sm text-ink-soft">موقعنا</div>
-                  <div className="font-bold">2116 المعراج العلوى، زهراء المعادى، القاهرة</div>
+                  <div className="font-bold">{settings.address}</div>
                 </div>
               </div>
             </div>

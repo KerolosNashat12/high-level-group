@@ -1,6 +1,7 @@
-const WHATSAPP_NUMBER = "201080146022";
+const DEFAULT_WHATSAPP = "201080146022";
 
-export default function WhatsAppButton() {
+export default function WhatsAppButton({ whatsappNumber }: { whatsappNumber?: string | null }) {
+  const WHATSAPP_NUMBER = whatsappNumber || DEFAULT_WHATSAPP;
   return (
     <a
       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(

@@ -11,6 +11,7 @@ type Lead = {
   propertyType: string | null;
   packageName: string | null;
   preferredDate: string | null;
+  preferredTime: string | null;
   notes: string | null;
   status: string;
   createdAt: string;
@@ -70,6 +71,11 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                 <td className="p-4 text-ink-soft">{lead.packageName ?? "—"}</td>
                 <td className="p-4 text-ink-soft">
                   {lead.preferredDate ? new Date(lead.preferredDate).toLocaleDateString("ar-EG") : "—"}
+                  {lead.preferredTime && (
+                    <span className="text-xs block text-gold font-bold" dir="ltr">
+                      {lead.preferredTime}
+                    </span>
+                  )}
                 </td>
                 <td className="p-4">
                   <select

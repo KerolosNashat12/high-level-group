@@ -1,12 +1,10 @@
-import { db } from "@/db";
-import { packages } from "@/db/schema";
-import { asc } from "drizzle-orm";
+import { getPackagesWithFeatures } from "@/lib/data";
 import PackageEditor from "@/components/PackageEditor";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPackagesPage() {
-  const pkgs = await db.select().from(packages).orderBy(asc(packages.order));
+  const pkgs = await getPackagesWithFeatures();
 
   return (
     <div>

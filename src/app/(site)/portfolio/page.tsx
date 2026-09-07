@@ -1,11 +1,15 @@
-import Link from "next/link";
 import PortfolioTeaser from "@/components/PortfolioTeaser";
+import { getPortfolioProjects } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "سابقة أعمالنا | هاى ليفيل للتشطيبات",
 };
 
-export default function PortfolioPage() {
+export default async function PortfolioPage() {
+  const projects = await getPortfolioProjects();
+
   return (
     <>
       <section className="bg-ink text-white py-20">
@@ -17,23 +21,7 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      <PortfolioTeaser />
-
-      <section className="pb-24 text-center">
-        <div className="container-page rounded-3xl border border-black/10 bg-black/[0.02] py-16">
-          <div className="text-4xl mb-4">🏗️</div>
-          <h2 className="text-2xl font-extrabold text-ink">قريباً.. قصص نجاح جديدة</h2>
-          <p className="mt-3 text-ink-soft">
-            نحن حالياً في مرحلة التنفيذ لمشاريع كبرى، تابعونا.
-          </p>
-          <Link
-            href="/contact"
-            className="mt-6 inline-block rounded-full bg-gold-gradient px-8 py-3.5 font-bold text-white hover:opacity-90 transition"
-          >
-            كن أول من يشاهد مشروعنا القادم
-          </Link>
-        </div>
-      </section>
+      <PortfolioTeaser projects={projects} />
     </>
   );
 }

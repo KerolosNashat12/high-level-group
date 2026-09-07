@@ -51,10 +51,64 @@ export const visitRequests = pgTable("visit_requests", {
   propertyType: text("property_type"),
   packageId: integer("package_id").references(() => packages.id),
   preferredDate: timestamp("preferred_date"),
+  // "YYYY-MM-DD" — kept alongside preferredDate for easy, timezone-safe availability lookups.
+  preferredDateStr: text("preferred_date_str"),
+  // "HH:MM" — the booked time slot, matched against weeklyAvailability.slots.
+  preferredTime: text("preferred_time"),
   notes: text("notes"),
   status: text("status").notNull().default("new"), // new, contacted, scheduled, done, cancelled
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Singleton row (id = 1) holding global site branding & contact/social settings,
+// editable from the admin dashboard.
+export const siteSettings = pgTable("site_settings", {
+  id: integer("id").primaryKey().default(1),
+  logoUrl: text("logo_url"),
+  whatsappNumber: text("whatsapp_number").notNull().default("201080146022"),
+  contactEmail: text("contact_email").notNull().default("Info@highlevel.com"),
+  contactPhone: text("contact_phone").notNull().default("01080146022"),
+  address: text("address").notNull().default("2116 المعراج العلوى، زهراء المعادى، القاهرة"),
+  facebookUrl: text("facebook_url"),
+  facebookEnabled: boolean("facebook_enabled").notNull().default(false),
+  instagramUrl: text("instagram_url"),
+  instagramEnabled: boolean("instagram_enabled").notNull().default(false),
+  tiktokUrl: text("tiktok_url"),
+  tiktokEnabled: boolean("tiktok_enabled").notNull().default(false),
+  youtubeUrl: text("youtube_url"),
+  youtubeEnabled: boolean("youtube_enabled").notNull().default(false),
+  linkedinUrl: text("linkedin_url"),
+  linkedinEnabled: boolean("linkedin_enabled").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const portfolioProjects = pgTable("portfolio_projects", {
+  id: serial("id").primaryKey(),
+  nameAr: text("name_ar").notNull(),
+  category: text("category").notNull().default("سكني"), // سكني | تجاري
+  beforeImageUrl: text("before_image_url"),
+  afterImageUrl: text("after_image_url"),
+  order: integer("order").notNull().default(0),
+  published: boolean("published").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// One row per weekday (0 = Sunday ... 6 = Saturday, matching JS Date#getDay()).
+export const weeklyAvailability = pgTable("weekly_availability", {
+  id: serial("id").primaryKey(),
+  dayOfWeek: integer("day_of_week").notNull().unique(),
+  isOpen: boolean("is_open").notNull().default(true),
+  slots: text("slots").notNull().default(""), // comma-separated "HH:MM" values
+});
+
+// Specific closed calendar dates (holidays, fully-booked days, etc).
+export const blockedDates = pgTable("blocked_dates", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(), // "YYYY-MM-DD"
+  reason: text("reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const contactMessages = pgTable("contact_messages", {

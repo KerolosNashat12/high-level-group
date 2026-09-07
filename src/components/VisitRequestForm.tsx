@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Loader2, CalendarX2 } from "lucide-react";
 
 type PackageOption = { id: number; nameAr: string };
+type Slot = { time: string; taken: boolean };
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
 
 export default function VisitRequestForm({
   packages,
@@ -14,6 +22,42 @@ export default function VisitRequestForm({
 }) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+  const [availability, setAvailability] = useState<{
+    open: boolean;
+    reason: string | null;
+    slots: Slot[];
+  } | null>(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  useEffect(() => {
+    if (!preferredDate) {
+      setAvailability(null);
+      return;
+    }
+    let cancelled = false;
+    setCheckingAvailability(true);
+    setPreferredTime("");
+    fetch(`/api/availability?date=${preferredDate}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setAvailability(data);
+      })
+      .catch(() => {
+        if (!cancelled) setAvailability(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingAvailability(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [preferredDate]);
+
+  const needsSlotChoice = Boolean(availability?.open && availability.slots.length > 0);
+  const canSubmit = !preferredDate || (availability?.open && (!needsSlotChoice || preferredTime));
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,7 +73,8 @@ export default function VisitRequestForm({
       area: data.get("area"),
       propertyType: data.get("propertyType"),
       packageId: data.get("packageId") ? Number(data.get("packageId")) : null,
-      preferredDate: data.get("preferredDate") || null,
+      preferredDate: preferredDate || null,
+      preferredTime: preferredTime || null,
       notes: data.get("notes"),
     };
 
@@ -45,6 +90,9 @@ export default function VisitRequestForm({
       }
       setStatus("success");
       form.reset();
+      setPreferredDate("");
+      setPreferredTime("");
+      setAvailability(null);
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "حدث خطأ، حاول مرة أخرى");
@@ -151,8 +199,50 @@ export default function VisitRequestForm({
       <input
         name="preferredDate"
         type="date"
+        min={todayStr()}
+        value={preferredDate}
+        onChange={(e) => setPreferredDate(e.target.value)}
         className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
       />
+
+      {preferredDate && (
+        <div className="sm:col-span-2">
+          {checkingAvailability ? (
+            <div className="flex items-center gap-2 text-sm text-ink-soft">
+              <Loader2 className="animate-spin" size={16} /> جارِ التحقق من المواعيد المتاحة...
+            </div>
+          ) : availability && !availability.open ? (
+            <div className="flex items-center gap-2 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm">
+              <CalendarX2 size={16} />
+              {availability.reason || "هذا اليوم غير متاح، الرجاء اختيار يوم آخر"}
+            </div>
+          ) : needsSlotChoice ? (
+            <div>
+              <div className="text-xs font-bold text-ink-soft mb-2">اختر الموعد المناسب</div>
+              <div className="flex flex-wrap gap-2">
+                {availability!.slots.map((s) => (
+                  <button
+                    key={s.time}
+                    type="button"
+                    disabled={s.taken}
+                    onClick={() => setPreferredTime(s.time)}
+                    className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                      s.taken
+                        ? "cursor-not-allowed border border-black/5 text-ink-soft/40 line-through"
+                        : preferredTime === s.time
+                        ? "bg-gold-gradient text-white"
+                        : "border border-black/10 text-ink-soft hover:border-gold/40"
+                    }`}
+                  >
+                    {s.time}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       <textarea
         name="notes"
         placeholder="ملاحظات إضافية (اختياري)"
@@ -166,7 +256,7 @@ export default function VisitRequestForm({
 
       <button
         type="submit"
-        disabled={status === "loading"}
+        disabled={status === "loading" || !canSubmit}
         className="sm:col-span-2 rounded-xl bg-gold-gradient text-white font-bold py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-60"
       >
         {status === "loading" && <Loader2 className="animate-spin" size={18} />}

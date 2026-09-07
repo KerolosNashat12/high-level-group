@@ -19,12 +19,61 @@ function InstagramIcon() {
   );
 }
 
+function TikTokIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.6 5.82c-.7-.77-1.1-1.77-1.1-2.82h-3.05v13.44a2.59 2.59 0 0 1-4.66 1.55 2.59 2.59 0 0 1 2.28-4.29c.27 0 .53.04.78.11V10.7a5.6 5.6 0 0 0-.78-.06 5.65 5.65 0 1 0 5.65 5.65V9.4a8.2 8.2 0 0 0 4.8 1.53V7.88a4.85 4.85 0 0 1-3.92-2.06Z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.4 3.6 12 3.6 12 3.6s-7.4 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c2 .5 9.4.5 9.4.5s7.4 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.8 12Z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-1 1.83-2 3.77-2 4.03 0 4.78 2.6 4.78 6V21h-4v-5.6c0-1.35-.03-3.1-1.9-3.1-1.9 0-2.2 1.48-2.2 3v5.7h-4V9Z" />
+    </svg>
+  );
+}
+
 const keywords = [
   "تشطيب شقق", "ديكورات داخلية", "تقسيط تشطيب", "تصميم معماري",
   "واجهات فلل", "باقات ذكية", "التجمع الخامس", "زايد والشيخ زايد", "أرقى أحياء القاهرة",
 ];
 
-export default function Footer() {
+type Settings = {
+  whatsappNumber: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  facebookUrl: string | null;
+  facebookEnabled: boolean;
+  instagramUrl: string | null;
+  instagramEnabled: boolean;
+  tiktokUrl: string | null;
+  tiktokEnabled: boolean;
+  youtubeUrl: string | null;
+  youtubeEnabled: boolean;
+  linkedinUrl: string | null;
+  linkedinEnabled: boolean;
+};
+
+export default function Footer({ settings }: { settings: Settings }) {
+  const socials = [
+    { enabled: settings.facebookEnabled, url: settings.facebookUrl, icon: <FacebookIcon />, label: "فيسبوك" },
+    { enabled: settings.instagramEnabled, url: settings.instagramUrl, icon: <InstagramIcon />, label: "انستجرام" },
+    { enabled: settings.tiktokEnabled, url: settings.tiktokUrl, icon: <TikTokIcon />, label: "تيك توك" },
+    { enabled: settings.youtubeEnabled, url: settings.youtubeUrl, icon: <YoutubeIcon />, label: "يوتيوب" },
+    { enabled: settings.linkedinEnabled, url: settings.linkedinUrl, icon: <LinkedinIcon />, label: "لينكدإن" },
+  ].filter((s) => s.enabled && s.url);
+
   return (
     <footer className="bg-ink text-white">
       <div className="container-page py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -40,13 +89,25 @@ export default function Footer() {
             هي شريكك الأمثل لتحويل مساحة أحلامك إلى حقيقة تتخطى التوقعات.&rdquo;
           </p>
           <div className="flex gap-3 mt-5">
-            <a href="#" className="p-2 rounded-full bg-white/10 hover:bg-gold transition" aria-label="فيسبوك">
-              <FacebookIcon />
-            </a>
-            <a href="#" className="p-2 rounded-full bg-white/10 hover:bg-gold transition" aria-label="انستجرام">
-              <InstagramIcon />
-            </a>
-            <a href="https://wa.me/201080146022" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-white/10 hover:bg-gold transition" aria-label="واتساب">
+            {socials.map((s) => (
+              <a
+                key={s.label}
+                href={s.url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-white/10 hover:bg-gold transition"
+                aria-label={s.label}
+              >
+                {s.icon}
+              </a>
+            ))}
+            <a
+              href={`https://wa.me/${settings.whatsappNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-white/10 hover:bg-gold transition"
+              aria-label="واتساب"
+            >
               <MessageCircle size={16} />
             </a>
           </div>
@@ -70,13 +131,13 @@ export default function Footer() {
           <ul className="space-y-3 text-sm text-white/60">
             <li className="flex items-start gap-2">
               <MapPin size={16} className="text-gold shrink-0 mt-0.5" />
-              2116 المعراج العلوى، زهراء المعادى، القاهرة
+              {settings.address}
             </li>
             <li className="flex items-center gap-2">
-              <Phone size={16} className="text-gold" /> 01080146022
+              <Phone size={16} className="text-gold" /> {settings.contactPhone}
             </li>
             <li className="flex items-center gap-2">
-              <Mail size={16} className="text-gold" /> info@highlevel.com
+              <Mail size={16} className="text-gold" /> {settings.contactEmail}
             </li>
           </ul>
         </div>

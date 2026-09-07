@@ -12,39 +12,116 @@ const QUICK_QUESTIONS = [
   "فين مناطق تغطية الخدمة؟",
 ];
 
-const WHATSAPP_NUMBER = "201080146022";
+const DEFAULT_WHATSAPP = "201080146022";
+const DEFAULT_PHONE = "01080146022";
+const DEFAULT_EMAIL = "Info@highlevel.com";
+const DEFAULT_ADDRESS = "2116 المعراج العلوى، زهراء المعادى، القاهرة";
 
-function answerFor(question: string): string {
-  const q = question.trim();
+type PkgBasic = { id: number; nameAr: string; pricePerMeter: number };
 
-  if (/باقات|سعر|اسعار|تكلفة|فلوس|جنيه/.test(q)) {
-    return "عندنا 3 باقات: باقة التوفير (3,500 ج.م/م²)، باقة السوبر (4,500 ج.م/م²) وهي الأكثر طلبًا، وباقة الالترا سوبر لوكس (6,000 ج.م/م²). كل الباقات بتشمل إشراف هندسي كامل وتقسيط مريح. تقدر تشوف التفاصيل كاملة في صفحة الباقات.";
+function fmt(n: number) {
+  return Math.round(n).toLocaleString("ar-EG");
+}
+
+// Pulls a "100 متر" / "150 م2" / "٢٠٠ متر مربع" style area out of free text,
+// normalizing Arabic-Indic digits first so both digit styles work.
+function extractArea(q: string): number | null {
+  const normalized = q.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+  const m = normalized.match(/(\d{2,4})\s*(متر مربع|م\s*2|م²|متر)/);
+  return m ? Number(m[1]) : null;
+}
+
+// Finds which package (if any) the question names, matching on loose
+// keywords rather than the exact package name.
+function extractPackage(q: string, packages: PkgBasic[]): PkgBasic | null {
+  if (/توفير|اقتصادي|الأرخص|ارخص/.test(q)) {
+    return packages.find((p) => /توفير/.test(p.nameAr)) ?? null;
   }
-  if (/مدة|وقت|قد ايه|قد إيه|فترة التنفيذ/.test(q)) {
+  if (/سوبر لوكس|الترا|فخم جدا|فاخرة جدا/.test(q)) {
+    return packages.find((p) => /الترا|لوكس/.test(p.nameAr)) ?? null;
+  }
+  if (/سوبر/.test(q)) {
+    return packages.find((p) => /^باقة السوبر$|سوبر(?!.*لوكس)/.test(p.nameAr)) ?? null;
+  }
+  return null;
+}
+
+function answerFor(question: string, ctx: { phone: string; email: string; address: string; packages: PkgBasic[] }): string {
+  const q = question.trim();
+  const { phone, email, address, packages } = ctx;
+
+  // Greetings & small talk first, so they don't fall through to the generic reply.
+  if (/^(سلام|السلام عليكم|اهلا|أهلا|هاي|هلا|صباح الخير|مساء الخير|ازيك|إزيك|عامل ايه)/.test(q)) {
+    return "وعليكم السلام وأهلاً بيك! 👋 اسألني عن الباقات وأسعارها، مدة التنفيذ، التقسيط، أو مناطق التغطية وهجاوبك على طول.";
+  }
+  if (/شكرا|شكرًا|تسلم|تمام كده|ربنا يخليك|متشكر/.test(q)) {
+    return "العفو! 🙏 لو حابب تحدد موعد معاينة مجانية، تقدر تملأ نموذج طلب المعاينة تحت وفريقنا هيتواصل معاك.";
+  }
+
+  // Smart cost estimate: "شقة 100 متر تكلف كام؟" — extracts the area and,
+  // if a specific package was named, prices just that one; otherwise all three.
+  const area = extractArea(q);
+  const asksCost = /تكلف|يكلف|هيكلفني|كلفة|بكام|كام|سعر|اسعار|أسعار|ثمن|تمن|حساب|قد ايه|قد إيه/.test(q);
+  if (area && asksCost && packages.length) {
+    const named = extractPackage(q, packages);
+    const rows = (named ? [named] : packages)
+      .map((p) => `${p.nameAr}: ${fmt(area * p.pricePerMeter)} ج.م`)
+      .join(" — ");
+    return `تكلفة تشطيب ${area} متر تقريبًا: ${rows}. الأرقام دي تقديرية، وتقدر تحسب قسطك الشهري بالظبط في حاسبة التقسيط الذكية بصفحة الباقات، أو اطلب معاينة مجانية لتسعير دقيق.`;
+  }
+
+  if (/باقات|باقة|سعر|اسعار|أسعار|تكلفة|فلوس|جنيه|بكام|كام|ثمن|تمن/.test(q)) {
+    if (packages.length) {
+      const rows = packages.map((p) => `${p.nameAr} (${fmt(p.pricePerMeter)} ج.م/م²)`).join("، ");
+      return `عندنا ${packages.length} باقات: ${rows}. كل الباقات بتشمل إشراف هندسي كامل وتقسيط مريح. تقدر تشوف التفاصيل كاملة في صفحة الباقات، أو قولي مساحة شقتك وهقولك التكلفة التقريبية على طول.`;
+    }
+    return "عندنا باقات متعددة تناسب كل الميزانيات، وتقدر تشوف التفاصيل كاملة في صفحة الباقات.";
+  }
+  if (/مدة|وقت التنفيذ|قد ايه.*تنفيذ|قد إيه.*تنفيذ|فترة التنفيذ|هيستغرق|هياخد وقت|أد ايه/.test(q)) {
     return "مدة التنفيذ بتختلف حسب مساحة الوحدة ونوع الباقة، وعادة بتتراوح بين 45 لـ 90 يوم عمل مع إشراف هندسي يومي والتزام كامل بالمواعيد.";
   }
-  if (/كهرباء|سباكة/.test(q)) {
+  if (/كهرباء|سباكة|تأسيس|تاسيس/.test(q)) {
     return "أيوه، كل الباقات بتشمل تأسيس كامل للكهرباء والسباكة بخامات معتمدة (السويدي، أطقم صحي تركي/ألماني حسب الباقة)، والتفاصيل الدقيقة موجودة في جدول مقارنة الباقات.";
   }
-  if (/تقسيط|مقدم|شهر|فايدة|فائدة/.test(q)) {
-    return "أنظمة التقسيط عندنا بتبدأ من 12 شهر لحد 60 شهر في حالات خاصة، بمقدم بسيط. جرب حاسبة التقسيط الذكية في صفحة الباقات عشان تعرف قسطك الشهري التقديري فورًا.";
+  if (/تقسيط|مقدم|قسط|شهر|فايدة|فائدة/.test(q)) {
+    return "أنظمة التقسيط عندنا بتبدأ من 12 شهر لحد 60 شهر في حالات خاصة، بمقدم بسيط بيبدأ من 10%. جرب حاسبة التقسيط الذكية في صفحة الباقات عشان تعرف قسطك الشهري التقديري فورًا.";
   }
-  if (/منطقة|تغطية|فين|أماكن|اماكن/.test(q)) {
+  if (/منطقة|تغطية|فين.*(تشتغل|بتغط)|أماكن|اماكن|بتغطوا/.test(q)) {
     return "بنغطي كل مناطق القاهرة الكبرى والمدن الجديدة: التجمع الخامس، القاهرة الجديدة، الشيخ زايد، 6 أكتوبر، العاصمة الإدارية، المعادي، مدينة نصر، وأماكن تانية كتير. اسأل عن منطقتك وهنأكدلك.";
   }
   if (/ضمان/.test(q)) {
     return "بنقدم ضمان حقيقي وشامل على كل بنود التنفيذ، بيصل لسنوات طويلة حسب الباقة، عشان راحة بالك مضمونة.";
   }
-  if (/3d|تصميم|رسم/.test(q)) {
+  if (/3d|٣d|تصميم|رسم|رسمة|ديزاين|مودل/.test(q)) {
     return "أيوه، كل الباقات بتشمل رسم تصميم للوحدة (2D أو 3D حسب الباقة) مجانًا قبل ما نبدأ التنفيذ، عشان تشوف شكل بيتك الجديد قبل التنفيذ.";
   }
-  if (/تواصل|رقم|اتصل|واتس|هاتف/.test(q)) {
-    return "تقدر تتواصل معانا مباشرة على 01080146022 أو من خلال واتساب، وفريقنا هيرد عليك خلال 24 ساعة.";
+  if (/فين مكانكم|عنوانكم|لوكيشن|موقعكم/.test(q)) {
+    return `مكتبنا في ${address}. تقدر كمان تتواصل معانا على ${phone} أو ${email}.`;
+  }
+  if (/تواصل|رقم|اتصل|واتس|هاتف|ايميل|إيميل|ميل/.test(q)) {
+    return `تقدر تتواصل معانا مباشرة على ${phone}، على إيميل ${email}، أو من خلال واتساب، وفريقنا هيرد عليك خلال 24 ساعة.`;
   }
   return "شكرًا لسؤالك! فريقنا المتخصص هيقدر يجاوبك بدقة أكتر على واتساب، أو املأ نموذج طلب المعاينة وهنتواصل معاك خلال 24 ساعة.";
 }
 
-export default function AiAssistant() {
+export default function AiAssistant({
+  whatsappNumber,
+  contactPhone,
+  contactEmail,
+  address,
+  packages,
+}: {
+  whatsappNumber?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  address?: string | null;
+  packages?: PkgBasic[];
+}) {
+  const WHATSAPP_NUMBER = whatsappNumber || DEFAULT_WHATSAPP;
+  const PHONE = contactPhone || DEFAULT_PHONE;
+  const EMAIL = contactEmail || DEFAULT_EMAIL;
+  const ADDRESS = address || DEFAULT_ADDRESS;
+  const PACKAGES = packages ?? [];
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     {
@@ -70,7 +147,10 @@ export default function AiAssistant() {
     setMessages((m) => [...m, { from: "user", text }]);
     setInput("");
     setTimeout(() => {
-      setMessages((m) => [...m, { from: "bot", text: answerFor(text) }]);
+      setMessages((m) => [
+        ...m,
+        { from: "bot", text: answerFor(text, { phone: PHONE, email: EMAIL, address: ADDRESS, packages: PACKAGES }) },
+      ]);
     }, 500);
   }
 

@@ -7,6 +7,7 @@ export async function notifyNewVisitRequest(data: {
   area?: string | null;
   packageName?: string | null;
   preferredDate?: string | null;
+  preferredTime?: string | null;
   notes?: string | null;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -33,7 +34,7 @@ export async function notifyNewVisitRequest(data: {
           <p><strong>المدينة:</strong> ${data.city}</p>
           ${data.area ? `<p><strong>المنطقة:</strong> ${data.area}</p>` : ""}
           ${data.packageName ? `<p><strong>الباقة المطلوبة:</strong> ${data.packageName}</p>` : ""}
-          ${data.preferredDate ? `<p><strong>التاريخ المفضل:</strong> ${data.preferredDate}</p>` : ""}
+          ${data.preferredDate ? `<p><strong>التاريخ المفضل:</strong> ${data.preferredDate}${data.preferredTime ? ` - ${data.preferredTime}` : ""}</p>` : ""}
           ${data.notes ? `<p><strong>ملاحظات:</strong> ${data.notes}</p>` : ""}
           <p style="margin-top:16px;">تحقق من لوحة التحكم لمتابعة الطلب.</p>
         </div>

@@ -1,4 +1,4 @@
-import { getPackagesWithFeatures } from "@/lib/data";
+import { getPackagesWithFeatures, getPortfolioProjects } from "@/lib/data";
 import PackageCard from "@/components/PackageCard";
 import VisitRequestForm from "@/components/VisitRequestForm";
 import Hero from "@/components/Hero";
@@ -12,14 +12,16 @@ import Testimonials from "@/components/Testimonials";
 import FaqAccordion from "@/components/FaqAccordion";
 import CoverageAreas from "@/components/CoverageAreas";
 import InstallmentCalculator from "@/components/InstallmentCalculator";
-import CustomerPortalCta from "@/components/CustomerPortalCta";
 import Reveal from "@/components/Reveal";
 import { Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const packages = await getPackagesWithFeatures();
+  const [packages, portfolioProjects] = await Promise.all([
+    getPackagesWithFeatures(),
+    getPortfolioProjects(),
+  ]);
 
   return (
     <>
@@ -51,7 +53,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <PortfolioTeaser />
+      <PortfolioTeaser projects={portfolioProjects} />
       <Testimonials />
 
       <InstallmentCalculator
@@ -76,8 +78,6 @@ export default async function HomePage() {
           </Reveal>
         </div>
       </section>
-
-      <CustomerPortalCta />
     </>
   );
 }

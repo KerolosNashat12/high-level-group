@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Package, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, LogOut, Settings, Images, CalendarClock } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "نظرة عامة", icon: LayoutDashboard },
   { href: "/admin/packages", label: "الباقات والأسعار", icon: Package },
+  { href: "/admin/portfolio", label: "معرض الأعمال", icon: Images },
+  { href: "/admin/availability", label: "مواعيد المعاينة", icon: CalendarClock },
   { href: "/admin/leads", label: "طلبات المعاينة", icon: Users },
+  { href: "/admin/settings", label: "إعدادات الموقع", icon: Settings },
 ];
 
 export default function AdminSidebar({ userName }: { userName: string }) {

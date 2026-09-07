@@ -15,6 +15,7 @@ export default async function AdminLeadsPage() {
       area: visitRequests.area,
       propertyType: visitRequests.propertyType,
       preferredDate: visitRequests.preferredDate,
+      preferredTime: visitRequests.preferredTime,
       notes: visitRequests.notes,
       status: visitRequests.status,
       createdAt: visitRequests.createdAt,

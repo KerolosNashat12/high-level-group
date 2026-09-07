@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, UserCircle2 } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -12,18 +13,31 @@ const navLinks = [
   { href: "/blog", label: "المدونة" },
 ];
 
-const WHATSAPP_NUMBER = "201080146022";
+const DEFAULT_WHATSAPP = "201080146022";
 
-export default function Header() {
+export default function Header({
+  logoUrl,
+  whatsappNumber,
+}: {
+  logoUrl?: string | null;
+  whatsappNumber?: string | null;
+}) {
   const [open, setOpen] = useState(false);
+  const waNumber = whatsappNumber || DEFAULT_WHATSAPP;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gold/20">
       <div className="container-page flex items-center justify-between h-20">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gold-gradient text-white font-extrabold text-sm">
-            HL
-          </span>
+          {logoUrl ? (
+            <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-md">
+              <Image src={logoUrl} alt="High Level" fill className="object-contain" unoptimized />
+            </span>
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gold-gradient text-white font-extrabold text-sm">
+              HL
+            </span>
+          )}
           <span className="text-2xl font-extrabold tracking-tight">
             <span className="text-ink">HIGH</span>
             <span className="text-gold"> LEVEL</span>
@@ -44,19 +58,13 @@ export default function Header() {
 
         <div className="hidden md:flex items-center gap-3">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            href={`https://wa.me/${waNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-bold text-ink-soft hover:border-gold hover:text-gold transition"
+            className="rounded-full bg-gold-gradient px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition"
           >
             تواصل واتساب
           </a>
-          <Link
-            href="/login"
-            className="flex items-center gap-1.5 rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition"
-          >
-            <UserCircle2 size={16} /> دخول الأعضاء
-          </Link>
         </div>
 
         <button
@@ -81,18 +89,11 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              className="rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-white text-center"
-              onClick={() => setOpen(false)}
-            >
-              دخول الأعضاء
-            </Link>
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              href={`https://wa.me/${waNumber}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-bold text-center text-ink-soft"
+              className="rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-center text-white"
             >
               تواصل واتساب
             </a>
