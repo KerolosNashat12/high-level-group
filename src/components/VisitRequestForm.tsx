@@ -84,15 +84,31 @@ export default function VisitRequestForm({
         placeholder="الاسم بالكامل"
         className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
       />
-      <input
-        name="phone"
-        required
-        type="tel"
-        pattern="^01[0-9]{9}$"
-        title="رقم موبايل مصري صحيح مثال: 01012345678"
-        placeholder="رقم الموبايل"
-        className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
-      />
+      <div className="flex gap-2">
+        <select
+          name="countryCode"
+          defaultValue="+20"
+          className="rounded-xl border border-black/10 px-2 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
+        >
+          <option value="+20">🇪🇬 +20</option>
+          <option value="+966">🇸🇦 +966</option>
+          <option value="+971">🇦🇪 +971</option>
+          <option value="+965">🇰🇼 +965</option>
+          <option value="+974">🇶🇦 +974</option>
+          <option value="+973">🇧🇭 +973</option>
+          <option value="+968">🇴🇲 +968</option>
+          <option value="+218">🇱🇾 +218</option>
+        </select>
+        <input
+          name="phone"
+          required
+          type="tel"
+          pattern="^01[0-9]{9}$"
+          title="رقم موبايل مصري صحيح مثال: 01012345678"
+          placeholder="رقم الموبايل"
+          className="flex-1 rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none"
+        />
+      </div>
       <select
         name="city"
         required

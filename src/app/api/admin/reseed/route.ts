@@ -1,11 +1,16 @@
-import "dotenv/config";
-import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { db } from "./index";
-import { adminUsers, packages, packageFeatures } from "./schema";
+import { db } from "@/db";
+import { packages, packageFeatures } from "@/db/schema";
 
-async function main() {
-  console.log("Seeding database...");
+// One-time endpoint to refresh package data with the real business content
+// (prices, names, feature bullets) copied from the live high-level-group.com
+// site. Protected by SETUP_SECRET, removed after use.
+export async function GET(req: NextRequest) {
+  const secret = req.nextUrl.searchParams.get("secret");
+  if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
 
   const seedPackages = [
     {
@@ -70,19 +75,17 @@ async function main() {
     },
   ];
 
+  const log: string[] = [];
+
   for (const pkg of seedPackages) {
     const { features, ...pkgData } = pkg;
     const [inserted] = await db
       .insert(packages)
       .values(pkgData)
-      .onConflictDoUpdate({
-        target: packages.slug,
-        set: pkgData,
-      })
+      .onConflictDoUpdate({ target: packages.slug, set: pkgData })
       .returning();
 
     await db.delete(packageFeatures).where(eq(packageFeatures.packageId, inserted.id));
-
     for (let i = 0; i < features.length; i++) {
       await db.insert(packageFeatures).values({
         packageId: inserted.id,
@@ -90,28 +93,8 @@ async function main() {
         order: i,
       });
     }
+    log.push(`${pkg.nameAr} updated`);
   }
 
-  const adminEmail = process.env.ADMIN_SEED_EMAIL || "admin@highlevelgroup.com";
-  const adminPassword = process.env.ADMIN_SEED_PASSWORD || "ChangeMe123!";
-  const passwordHash = await bcrypt.hash(adminPassword, 10);
-
-  await db
-    .insert(adminUsers)
-    .values({
-      name: "Kerolos Nashat",
-      email: adminEmail,
-      passwordHash,
-      role: "owner",
-    })
-    .onConflictDoNothing();
-
-  console.log("Seed complete.");
-  console.log(`Admin login: ${adminEmail} / ${adminPassword}`);
-  process.exit(0);
+  return NextResponse.json({ ok: true, log });
 }
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});

@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, UserCircle2 } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
-  { href: "/packages", label: "الباقات" },
-  { href: "/about", label: "من نحن" },
-  { href: "/contact", label: "تواصل معنا" },
+  { href: "/packages", label: "باقات التقسيط" },
+  { href: "/portfolio", label: "أعمالنا" },
+  { href: "/services", label: "خدماتنا" },
+  { href: "/blog", label: "المدونة" },
 ];
+
+const WHATSAPP_NUMBER = "201080146022";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -18,12 +21,12 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gold/20">
       <div className="container-page flex items-center justify-between h-20">
         <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gold-gradient text-white font-extrabold text-sm">
+            HL
+          </span>
           <span className="text-2xl font-extrabold tracking-tight">
             <span className="text-ink">HIGH</span>
             <span className="text-gold"> LEVEL</span>
-          </span>
-          <span className="hidden sm:block text-xs text-ink-soft border-r border-gold/30 pr-2 mr-1">
-            جروب للتشطيبات
           </span>
         </Link>
 
@@ -40,11 +43,19 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/packages#visit-request"
-            className="rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition"
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-bold text-ink-soft hover:border-gold hover:text-gold transition"
           >
-            اطلب معاينة مجانية
+            تواصل واتساب
+          </a>
+          <Link
+            href="/login"
+            className="flex items-center gap-1.5 rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90 transition"
+          >
+            <UserCircle2 size={16} /> دخول الأعضاء
           </Link>
         </div>
 
@@ -71,14 +82,19 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/packages#visit-request"
+              href="/login"
               className="rounded-full bg-gold-gradient px-5 py-2.5 text-sm font-bold text-white text-center"
               onClick={() => setOpen(false)}
             >
-              اطلب معاينة مجانية
+              دخول الأعضاء
             </Link>
-            <a href="tel:+201000000000" className="flex items-center gap-2 text-sm text-ink-soft">
-              <Phone size={16} /> 01000000000
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-bold text-center text-ink-soft"
+            >
+              تواصل واتساب
             </a>
           </div>
         </div>

@@ -29,7 +29,7 @@ export default function PackageCard({ pkg }: { pkg: Pkg }) {
     >
       {pkg.featured && (
         <span className="absolute -top-3 right-8 flex items-center gap-1 rounded-full bg-gold-gradient text-white text-xs font-bold px-3 py-1">
-          <Star size={12} fill="white" /> الأكثر طلبًا
+          <Star size={12} fill="white" /> الاختيار الأمثل
         </span>
       )}
 
@@ -64,7 +64,7 @@ export default function PackageCard({ pkg }: { pkg: Pkg }) {
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = pkg.color)}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
-        اطلب معاينة لهذه الباقة
+        {pkg.featured ? "تم الاختيار بنجاح" : "تخصيص هذه الباقة"}
       </Link>
     </div>
   );
