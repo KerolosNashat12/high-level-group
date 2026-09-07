@@ -1,6 +1,7 @@
 const partners = ["Jotun", "Sipes", "Duravit", "Elsewedy", "Ideal Standard", "Gazzaz"];
 
-export default function Partners() {
+export default function Partners({ lang = "ar" }: { lang?: "ar" | "en" }) {
+  const isEn = lang === "en";
   const loop = [...partners, ...partners];
   return (
     <section className="border-y border-black/5 bg-white py-10 overflow-hidden">
@@ -8,7 +9,9 @@ export default function Partners() {
         <span className="text-gold text-xs font-bold tracking-[0.2em] uppercase">
           Official Partners
         </span>
-        <h3 className="mt-2 text-xl font-extrabold text-ink">شركاء النجاح والجودة</h3>
+        <h3 className="mt-2 text-xl font-extrabold text-ink">
+          {isEn ? "Partners in Success & Quality" : "شركاء النجاح والجودة"}
+        </h3>
       </div>
       <div className="relative flex overflow-hidden">
         <div className="flex min-w-full shrink-0 animate-marquee items-center gap-16 pr-16">

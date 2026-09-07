@@ -8,16 +8,43 @@ import Reveal from "@/components/Reveal";
 type Project = {
   id: number;
   nameAr: string;
+  nameEn?: string | null;
   category: string;
   beforeImageUrl: string | null;
   afterImageUrl: string | null;
 };
 
-const filters = ["الكل", "سكني", "تجاري"];
+const CATEGORY_LABEL: Record<string, string> = {
+  "سكني": "Residential",
+  "تجاري": "Commercial",
+};
 
-export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
-  const [filter, setFilter] = useState("الكل");
-  const visible = projects.filter((p) => filter === "الكل" || p.category === filter);
+const FILTERS: Record<"ar" | "en", string[]> = {
+  ar: ["الكل", "سكني", "تجاري"],
+  en: ["All", "سكني", "تجاري"],
+};
+
+export default function PortfolioTeaser({
+  projects,
+  lang = "ar",
+}: {
+  projects: Project[];
+  lang?: "ar" | "en";
+}) {
+  const isEn = lang === "en";
+  const filters = FILTERS[lang];
+  const allLabel = filters[0];
+  const [filter, setFilter] = useState(allLabel);
+  const visible = projects.filter((p) => filter === allLabel || p.category === filter);
+
+  function displayName(p: Project) {
+    return isEn ? p.nameEn || p.nameAr : p.nameAr;
+  }
+
+  function displayCategory(f: string) {
+    if (f === allLabel) return isEn ? "All" : "الكل";
+    return isEn ? CATEGORY_LABEL[f] || f : f;
+  }
 
   return (
     <section className="py-24">
@@ -27,10 +54,12 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
             Transformations
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold text-ink">
-            شاهد سحر التحول المعماري
+            {isEn ? "Witness the Magic of Architectural Transformation" : "شاهد سحر التحول المعماري"}
           </h2>
           <p className="mt-3 text-ink-soft">
-            نحن لا نغير الديكور، نحن نعيد صياغة مفهوم الفراغ ليناسب أسلوب حياتك.
+            {isEn
+              ? "We don't just change the decor — we reshape the concept of space to fit your lifestyle."
+              : "نحن لا نغير الديكور، نحن نعيد صياغة مفهوم الفراغ ليناسب أسلوب حياتك."}
           </p>
         </Reveal>
 
@@ -46,7 +75,7 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
                     : "border border-black/10 text-ink-soft hover:border-gold/40"
                 }`}
               >
-                {f}
+                {displayCategory(f)}
               </button>
             ))}
           </div>
@@ -61,7 +90,7 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
                     {p.beforeImageUrl && (
                       <Image
                         src={p.beforeImageUrl}
-                        alt={`${p.nameAr} - قبل`}
+                        alt={`${displayName(p)} - ${isEn ? "Before" : "قبل"}`}
                         fill
                         unoptimized={p.beforeImageUrl.startsWith("data:")}
                         className="object-cover"
@@ -70,7 +99,7 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
                     {p.afterImageUrl && (
                       <Image
                         src={p.afterImageUrl}
-                        alt={`${p.nameAr} - بعد`}
+                        alt={`${displayName(p)} - ${isEn ? "After" : "بعد"}`}
                         fill
                         unoptimized={p.afterImageUrl.startsWith("data:")}
                         className="object-cover opacity-0 transition duration-700 group-hover:opacity-100"
@@ -84,7 +113,7 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
                       AFTER TRANSFORMATION
                     </span>
                     <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                      <h3 className="font-bold">{p.nameAr}</h3>
+                      <h3 className="font-bold">{displayName(p)}</h3>
                       <span className="text-[10px] uppercase tracking-widest text-white/60">
                         Architectural Metamorphosis
                       </span>
@@ -102,7 +131,11 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
             <div className="text-4xl mb-4">🏗️</div>
             <p className="text-ink-soft">
               {projects.length === 0
-                ? "نحن حالياً في مرحلة التنفيذ لمشاريع كبرى، تابعونا قريبًا."
+                ? isEn
+                  ? "We're currently working on major projects — stay tuned."
+                  : "نحن حالياً في مرحلة التنفيذ لمشاريع كبرى، تابعونا قريبًا."
+                : isEn
+                ? "There are no projects in this category at the moment."
                 : "لا توجد مشاريع في هذا التصنيف حاليًا."}
             </p>
           </div>
@@ -110,10 +143,10 @@ export default function PortfolioTeaser({ projects }: { projects: Project[] }) {
 
         <div className="mt-10 text-center">
           <Link
-            href="/portfolio"
+            href={isEn ? "/en/portfolio" : "/portfolio"}
             className="inline-block rounded-full border border-gold px-8 py-3.5 font-bold text-gold hover:bg-gold hover:text-white transition"
           >
-            معرض الأعمال بالكامل
+            {isEn ? "View the Full Portfolio" : "معرض الأعمال بالكامل"}
           </Link>
         </div>
       </div>

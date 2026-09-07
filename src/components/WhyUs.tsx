@@ -2,40 +2,76 @@ import { ShieldCheck, Wallet, Ruler, Clock3, Gem, Sparkles } from "lucide-react"
 import Reveal from "@/components/Reveal";
 import Counter from "@/components/Counter";
 
-const items = [
-  {
-    icon: ShieldCheck,
-    title: "ضمان حقيقي",
-    desc: "نقدم ضماناً شاملاً على كافة بنود التنفيذ لضمان راحة بالك لسنوات.",
-  },
-  {
-    icon: Wallet,
-    title: "تقسيط بدون ضغط",
-    desc: "أنظمة تقسيط متنوعة تبدأ من 12 شهر وتصل لـ 60 شهر بأقل فائدة في مصر.",
-  },
-  {
-    icon: Ruler,
-    title: "إشراف هندسي دقيق",
-    desc: "كل مسمار في منزلك يتم تحت إشراف هندسي مباشر لضمان أعلى معايير الجودة.",
-  },
-  {
-    icon: Clock3,
-    title: "التزام بالمواعيد",
-    desc: "نحترم وقتك، ونسلم مشروعك في الموعد المحدد دون أي تأخير.",
-  },
-  {
-    icon: Gem,
-    title: "خامات أصلية",
-    desc: "نتعامل فقط مع كبرى الشركات (جوتن، السويدي، ديورافيت) لضمان عمر افتراضي أطول.",
-  },
-  {
-    icon: Sparkles,
-    title: "تصميمات حصرية",
-    desc: "تصميماتنا فريدة ولا تتكرر، مصممة خصيصاً لتناسب ذوقك واحتياجاتك.",
-  },
-];
+const items: Record<"ar" | "en", { icon: typeof ShieldCheck; title: string; desc: string }[]> = {
+  ar: [
+    {
+      icon: ShieldCheck,
+      title: "ضمان حقيقي",
+      desc: "نقدم ضماناً شاملاً على كافة بنود التنفيذ لضمان راحة بالك لسنوات.",
+    },
+    {
+      icon: Wallet,
+      title: "تقسيط بدون ضغط",
+      desc: "أنظمة تقسيط متنوعة تبدأ من 12 شهر وتصل لـ 60 شهر بأقل فائدة في مصر.",
+    },
+    {
+      icon: Ruler,
+      title: "إشراف هندسي دقيق",
+      desc: "كل مسمار في منزلك يتم تحت إشراف هندسي مباشر لضمان أعلى معايير الجودة.",
+    },
+    {
+      icon: Clock3,
+      title: "التزام بالمواعيد",
+      desc: "نحترم وقتك، ونسلم مشروعك في الموعد المحدد دون أي تأخير.",
+    },
+    {
+      icon: Gem,
+      title: "خامات أصلية",
+      desc: "نتعامل فقط مع كبرى الشركات (جوتن، السويدي، ديورافيت) لضمان عمر افتراضي أطول.",
+    },
+    {
+      icon: Sparkles,
+      title: "تصميمات حصرية",
+      desc: "تصميماتنا فريدة ولا تتكرر، مصممة خصيصاً لتناسب ذوقك واحتياجاتك.",
+    },
+  ],
+  en: [
+    {
+      icon: ShieldCheck,
+      title: "Genuine Warranty",
+      desc: "We back every item of work with a comprehensive warranty, so you can enjoy years of peace of mind.",
+    },
+    {
+      icon: Wallet,
+      title: "Installments Without the Pressure",
+      desc: "Flexible payment plans from 12 up to 60 months, with the lowest financing rates in Egypt.",
+    },
+    {
+      icon: Ruler,
+      title: "Precise Engineering Supervision",
+      desc: "Every detail of your home is executed under direct engineering supervision to guarantee the highest quality standards.",
+    },
+    {
+      icon: Clock3,
+      title: "On-Time, Every Time",
+      desc: "We respect your time and deliver your project on the agreed schedule, with no delays.",
+    },
+    {
+      icon: Gem,
+      title: "Genuine Materials",
+      desc: "We work exclusively with leading brands (Jotun, Elsewedy, Duravit) to ensure a longer lifespan for your home.",
+    },
+    {
+      icon: Sparkles,
+      title: "Exclusive Designs",
+      desc: "Our designs are unique and never repeated — crafted specifically to match your taste and needs.",
+    },
+  ],
+};
 
-export default function WhyUs() {
+export default function WhyUs({ lang = "ar" }: { lang?: "ar" | "en" }) {
+  const isEn = lang === "en";
+  const list = items[lang];
   return (
     <section className="py-24 bg-black/[0.02]">
       <div className="container-page">
@@ -44,11 +80,12 @@ export default function WhyUs() {
             Innovation &amp; Trust
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold text-ink text-balance">
-            لماذا يستحق منزلك لمستنا المعمارية؟
+            {isEn ? "Why Does Your Home Deserve Our Architectural Touch?" : "لماذا يستحق منزلك لمستنا المعمارية؟"}
           </h2>
           <p className="mt-4 text-ink-soft italic leading-relaxed">
-            &ldquo;نحن لا نشطب الجدران، نحن نصمم المساحات التي تمنحك شعوراً
-            بالفخامة في كل تفصيلة.&rdquo;
+            {isEn
+              ? '"We don\'t just finish walls — we design spaces that give you a feeling of luxury in every detail."'
+              : "“نحن لا نشطب الجدران، نحن نصمم المساحات التي تمنحك شعوراً بالفخامة في كل تفصيلة.”"}
           </p>
           <div className="mt-6 text-4xl font-extrabold text-gold">
             <Counter to={15} suffix="+" />
@@ -59,7 +96,7 @@ export default function WhyUs() {
         </Reveal>
 
         <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item, i) => (
+          {list.map((item, i) => (
             <Reveal key={item.title} delay={i * 80}>
               <div className="h-full rounded-2xl border border-black/10 bg-white p-7 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-gold/10 hover:border-gold/30">
                 <item.icon className="text-gold" size={30} />

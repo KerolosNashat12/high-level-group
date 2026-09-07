@@ -3,42 +3,72 @@ import Image from "next/image";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import Reveal from "@/components/Reveal";
 
-const items = [
-  {
-    title: "شقق سكنية",
-    desc: "تشطيب شقق سكنية بأعلى المعايير الفندقية.",
-    img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    title: "فيلات وقصور",
-    desc: "تصميم وتنفيذ لاندسكيب وتشطيبات داخلية فاخرة.",
-    img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    title: "مكاتب وإداري",
-    desc: "بيئة عمل محفزة بتصاميم عصرية وعملية.",
-    img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
-  },
-  {
-    title: "محلات ومولات",
-    desc: "جذب العملاء بتصاميم تجارية مبتكرة ومميزة.",
-    img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop",
-  },
-];
+const items: Record<"ar" | "en", { title: string; desc: string; img: string }[]> = {
+  ar: [
+    {
+      title: "شقق سكنية",
+      desc: "تشطيب شقق سكنية بأعلى المعايير الفندقية.",
+      img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "فيلات وقصور",
+      desc: "تصميم وتنفيذ لاندسكيب وتشطيبات داخلية فاخرة.",
+      img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "مكاتب وإداري",
+      desc: "بيئة عمل محفزة بتصاميم عصرية وعملية.",
+      img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "محلات ومولات",
+      desc: "جذب العملاء بتصاميم تجارية مبتكرة ومميزة.",
+      img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop",
+    },
+  ],
+  en: [
+    {
+      title: "Residential Apartments",
+      desc: "Apartment finishing to the highest hotel-grade standards.",
+      img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "Villas & Mansions",
+      desc: "Landscape design and luxurious interior finishing, designed and executed end to end.",
+      img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "Offices & Administrative",
+      desc: "A motivating workspace with modern, practical designs.",
+      img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
+    },
+    {
+      title: "Shops & Malls",
+      desc: "Attract customers with innovative, distinctive commercial designs.",
+      img: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop",
+    },
+  ],
+};
 
 const WHATSAPP_NUMBER = "201080146022";
 
-export default function Specializations() {
+export default function Specializations({ lang = "ar" }: { lang?: "ar" | "en" }) {
+  const isEn = lang === "en";
+  const p = isEn ? "/en" : "";
   return (
     <section className="py-24 bg-black/[0.02]">
       <div className="container-page">
         <Reveal className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-ink">تخصصاتنا المعمارية</h2>
-          <p className="mt-3 text-ink-soft">حلول متكاملة لجميع أنواع العقارات</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-ink">
+            {isEn ? "Our Architectural Specializations" : "تخصصاتنا المعمارية"}
+          </h2>
+          <p className="mt-3 text-ink-soft">
+            {isEn ? "Complete solutions for every type of property" : "حلول متكاملة لجميع أنواع العقارات"}
+          </p>
         </Reveal>
 
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {items.map((item, i) => (
+          {items[lang].map((item, i) => (
             <Reveal key={item.title} delay={i * 80}>
               <div className="group relative h-72 overflow-hidden rounded-2xl">
                 <Image
@@ -53,10 +83,10 @@ export default function Specializations() {
                   <p className="mt-1 text-xs text-white/70 leading-relaxed">{item.desc}</p>
                   <div className="mt-4 flex flex-col gap-2 opacity-0 translate-y-2 transition group-hover:opacity-100 group-hover:translate-y-0">
                     <Link
-                      href="/portfolio"
+                      href={`${p}/portfolio`}
                       className="flex items-center justify-center gap-1 rounded-full bg-white/15 backdrop-blur px-3 py-2 text-[11px] font-bold hover:bg-white/25"
                     >
-                      استكشف المشاريع <ArrowLeft size={12} />
+                      {isEn ? "Explore Projects" : "استكشف المشاريع"} <ArrowLeft size={12} />
                     </Link>
                     <a
                       href={`https://wa.me/${WHATSAPP_NUMBER}`}
@@ -64,7 +94,7 @@ export default function Specializations() {
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-1 rounded-full bg-gold-gradient px-3 py-2 text-[11px] font-bold"
                     >
-                      <MessageCircle size={12} /> استفسار عبر واتساب
+                      <MessageCircle size={12} /> {isEn ? "Inquire via WhatsApp" : "استفسار عبر واتساب"}
                     </a>
                   </div>
                 </div>

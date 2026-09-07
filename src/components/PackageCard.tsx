@@ -8,6 +8,7 @@ type Pkg = {
   id: number;
   slug: string;
   nameAr: string;
+  nameEn?: string | null;
   tagline: string | null;
   pricePerMeter: number;
   downPaymentPct: number;
@@ -17,7 +18,10 @@ type Pkg = {
   features: Feature[];
 };
 
-export default function PackageCard({ pkg }: { pkg: Pkg }) {
+export default function PackageCard({ pkg, lang = "ar" }: { pkg: Pkg; lang?: "ar" | "en" }) {
+  const isEn = lang === "en";
+  const p = isEn ? "/en" : "";
+  const name = isEn ? pkg.nameEn || pkg.nameAr : pkg.nameAr;
   return (
     <div
       id={pkg.slug}
@@ -29,23 +33,25 @@ export default function PackageCard({ pkg }: { pkg: Pkg }) {
     >
       {pkg.featured && (
         <span className="absolute -top-3 right-8 flex items-center gap-1 rounded-full bg-gold-gradient text-white text-xs font-bold px-3 py-1">
-          <Star size={12} fill="white" /> الاختيار الأمثل
+          <Star size={12} fill="white" /> {isEn ? "The Best Choice" : "الاختيار الأمثل"}
         </span>
       )}
 
       <h3 className="text-xl font-extrabold" style={{ color: pkg.color }}>
-        {pkg.nameAr}
+        {name}
       </h3>
       {pkg.tagline && <p className="text-sm text-ink-soft mt-1">{pkg.tagline}</p>}
 
       <div className="mt-6">
         <span className="text-3xl font-extrabold text-ink">
-          {pkg.pricePerMeter.toLocaleString("ar-EG")}
+          {pkg.pricePerMeter.toLocaleString(isEn ? "en-US" : "ar-EG")}
         </span>
-        <span className="text-sm text-ink-soft"> جنيه / متر</span>
+        <span className="text-sm text-ink-soft"> {isEn ? "EGP / m²" : "جنيه / متر"}</span>
       </div>
       <div className="mt-2 text-sm text-ink-soft">
-        مقدم {pkg.downPaymentPct}% وتقسيط حتى {pkg.installmentMonths} شهر
+        {isEn
+          ? `${pkg.downPaymentPct}% down payment, installments up to ${pkg.installmentMonths} months`
+          : `مقدم ${pkg.downPaymentPct}% وتقسيط حتى ${pkg.installmentMonths} شهر`}
       </div>
 
       <ul className="mt-6 space-y-3 flex-1">
@@ -58,13 +64,13 @@ export default function PackageCard({ pkg }: { pkg: Pkg }) {
       </ul>
 
       <Link
-        href={`/packages#visit-request?package=${pkg.id}`}
+        href={`${p}/packages#visit-request?package=${pkg.id}`}
         className="mt-8 text-center rounded-xl border-2 font-bold py-3 transition hover:text-white"
         style={{ borderColor: pkg.color, color: pkg.color }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = pkg.color)}
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
-        {pkg.featured ? "تم الاختيار بنجاح" : "تخصيص هذه الباقة"}
+        {pkg.featured ? (isEn ? "Selected Successfully" : "تم الاختيار بنجاح") : isEn ? "Customize This Package" : "تخصيص هذه الباقة"}
       </Link>
     </div>
   );

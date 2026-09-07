@@ -1,12 +1,20 @@
 const DEFAULT_WHATSAPP = "201080146022";
 
-export default function WhatsAppButton({ whatsappNumber }: { whatsappNumber?: string | null }) {
+export default function WhatsAppButton({
+  whatsappNumber,
+  lang = "ar",
+}: {
+  whatsappNumber?: string | null;
+  lang?: "ar" | "en";
+}) {
   const WHATSAPP_NUMBER = whatsappNumber || DEFAULT_WHATSAPP;
+  const text =
+    lang === "en"
+      ? "Hi, I'd like to know more about the installment finishing packages"
+      : "أهلاً، حابب أعرف أكتر عن باقات التشطيب بالتقسيط";
   return (
     <a
-      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-        "أهلاً، حابب أعرف أكتر عن باقات التشطيب بالتقسيط"
-      )}`}
+      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="تواصل واتساب"

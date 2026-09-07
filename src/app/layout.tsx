@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Tajawal } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const tajawal = Tajawal({
@@ -18,13 +19,17 @@ export const viewport: Viewport = {
   themeColor: "#b48b4e",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "/";
+  const isEnglish = pathname === "/en" || pathname.startsWith("/en/");
+
   return (
-    <html lang="ar" dir="rtl">
+    <html lang={isEnglish ? "en" : "ar"} dir={isEnglish ? "ltr" : "rtl"}>
       <body className={`${tajawal.variable} font-sans antialiased bg-white text-ink`}>
         {children}
       </body>

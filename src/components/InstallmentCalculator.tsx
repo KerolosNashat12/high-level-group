@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import Reveal from "@/components/Reveal";
 import VisitBookingForm from "@/components/VisitBookingForm";
 
-type Pkg = { id: number; nameAr: string; pricePerMeter: number; downPaymentPct: number };
+type Pkg = { id: number; nameAr: string; nameEn?: string | null; pricePerMeter: number; downPaymentPct: number };
 
 const DURATIONS = [12, 24, 36, 48, 60];
 
-function fmt(n: number) {
-  return Math.round(n).toLocaleString("ar-EG");
+function fmt(n: number, lang: "ar" | "en" = "ar") {
+  return Math.round(n).toLocaleString(lang === "en" ? "en-US" : "ar-EG");
 }
 
 function SliderField({
@@ -20,6 +20,7 @@ function SliderField({
   step,
   unit,
   onChange,
+  lang = "ar",
 }: {
   label: string;
   value: number;
@@ -28,6 +29,7 @@ function SliderField({
   step: number;
   unit: string;
   onChange: (v: number) => void;
+  lang?: "ar" | "en";
 }) {
   // The input itself is forced to `direction: ltr` in globals.css, so its
   // thumb always travels min→max left→right — this percentage must match
@@ -39,7 +41,7 @@ function SliderField({
       <div className="flex justify-between text-sm font-bold text-ink mb-2">
         <span>{label}</span>
         <span className="text-gold">
-          {fmt(value)} {unit}
+          {fmt(value, lang)} {unit}
         </span>
       </div>
 
@@ -48,7 +50,7 @@ function SliderField({
           className="absolute top-0 -translate-x-1/2 rounded-lg bg-ink text-white text-[11px] font-bold px-2 py-1 shadow-md transition-[left] duration-100 pointer-events-none"
           style={{ left: `${pct}%` }}
         >
-          {fmt(value)} {unit}
+          {fmt(value, lang)} {unit}
           <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-ink" />
         </div>
         <input
@@ -64,17 +66,24 @@ function SliderField({
       </div>
       <div className="flex justify-between text-[11px] text-ink-soft mt-1" dir="ltr">
         <span>
-          {fmt(min)} {unit}
+          {fmt(min, lang)} {unit}
         </span>
         <span>
-          {fmt(max)} {unit}
+          {fmt(max, lang)} {unit}
         </span>
       </div>
     </div>
   );
 }
 
-export default function InstallmentCalculator({ packages }: { packages: Pkg[] }) {
+export default function InstallmentCalculator({
+  packages,
+  lang = "ar",
+}: {
+  packages: Pkg[];
+  lang?: "ar" | "en";
+}) {
+  const isEn = lang === "en";
   const [area, setArea] = useState(100);
   const [months, setMonths] = useState(24);
   const [pkgId, setPkgId] = useState(packages[1]?.id ?? packages[0]?.id);
@@ -97,6 +106,10 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
     setShowBooking(false);
   }
 
+  function pkgName(p: Pkg) {
+    return isEn ? p.nameEn || p.nameAr : p.nameAr;
+  }
+
   return (
     <section id="calculator" className="py-24 bg-black/[0.02]">
       <div className="container-page max-w-4xl">
@@ -105,10 +118,12 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
             Financial Planning
           </span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold text-ink">
-            محرك التقسيط الذكي
+            {isEn ? "Smart Financing Engine" : "محرك التقسيط الذكي"}
           </h2>
           <p className="mt-3 text-ink-soft">
-            SMART FINANCING ENGINE — احسب تكلفة مشروعك وقسطك الشهري التقديري فورًا
+            {isEn
+              ? "SMART FINANCING ENGINE — Instantly calculate your project cost and estimated monthly installment"
+              : "SMART FINANCING ENGINE — احسب تكلفة مشروعك وقسطك الشهري التقديري فورًا"}
           </p>
         </Reveal>
 
@@ -124,10 +139,12 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
                     : "border-black/10 hover:border-gold/40"
                 }`}
               >
-                <div className="font-bold text-ink text-sm">{p.nameAr}</div>
+                <div className="font-bold text-ink text-sm">{pkgName(p)}</div>
                 <div className="mt-1 text-lg font-extrabold text-gold">
-                  {fmt(p.pricePerMeter)}{" "}
-                  <span className="text-xs font-normal text-ink-soft">ج.م/م²</span>
+                  {fmt(p.pricePerMeter, lang)}{" "}
+                  <span className="text-xs font-normal text-ink-soft">
+                    {isEn ? "EGP/m²" : "ج.م/م²"}
+                  </span>
                 </div>
               </button>
             ))}
@@ -135,27 +152,31 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
 
           <div className="space-y-10">
             <SliderField
-              label="مساحة العقار"
+              label={isEn ? "Property Area" : "مساحة العقار"}
               value={area}
               min={60}
               max={800}
               step={10}
-              unit="م²"
+              unit={isEn ? "m²" : "م²"}
               onChange={setArea}
+              lang={lang}
             />
 
             <SliderField
-              label="مقدم التعاقد"
+              label={isEn ? "Down Payment" : "مقدم التعاقد"}
               value={downPct}
               min={10}
               max={50}
               step={5}
               unit="%"
               onChange={setDownPct}
+              lang={lang}
             />
 
             <div>
-              <div className="text-sm font-bold text-ink mb-2">مدة التقسيط المفضلة</div>
+              <div className="text-sm font-bold text-ink mb-2">
+                {isEn ? "Preferred Installment Duration" : "مدة التقسيط المفضلة"}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {DURATIONS.map((m) => (
                   <button
@@ -167,7 +188,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
                         : "border border-black/10 text-ink-soft hover:border-gold/40"
                     }`}
                   >
-                    {m} شهر
+                    {m} {isEn ? "months" : "شهر"}
                   </button>
                 ))}
               </div>
@@ -176,24 +197,35 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
 
           <div className="mt-10 grid sm:grid-cols-3 gap-4 text-center">
             <div className="rounded-2xl bg-ink text-white p-6">
-              <div className="text-xs text-white/50 mb-2">التكلفة التقديرية للمشروع</div>
-              <div className="text-2xl font-extrabold">{fmt(total)} <span className="text-sm font-normal">ج.م</span></div>
+              <div className="text-xs text-white/50 mb-2">
+                {isEn ? "Estimated Project Cost" : "التكلفة التقديرية للمشروع"}
+              </div>
+              <div className="text-2xl font-extrabold">
+                {fmt(total, lang)} <span className="text-sm font-normal">{isEn ? "EGP" : "ج.م"}</span>
+              </div>
             </div>
             <div className="rounded-2xl border border-black/10 p-6">
-              <div className="text-xs text-ink-soft mb-2">مقدم التعاقد ({downPct}%)</div>
-              <div className="text-2xl font-extrabold text-ink">{fmt(down)} <span className="text-sm font-normal">ج.م</span></div>
+              <div className="text-xs text-ink-soft mb-2">
+                {isEn ? `Down Payment (${downPct}%)` : `مقدم التعاقد (${downPct}%)`}
+              </div>
+              <div className="text-2xl font-extrabold text-ink">
+                {fmt(down, lang)} <span className="text-sm font-normal">{isEn ? "EGP" : "ج.م"}</span>
+              </div>
             </div>
             <div className="rounded-2xl bg-gold-gradient text-white p-6">
-              <div className="text-xs text-white/80 mb-2">القسط الشهري التقديري</div>
-              <div className="text-2xl font-extrabold">{fmt(monthly)} <span className="text-sm font-normal">ج.م/ش</span></div>
+              <div className="text-xs text-white/80 mb-2">
+                {isEn ? "Estimated Monthly Installment" : "القسط الشهري التقديري"}
+              </div>
+              <div className="text-2xl font-extrabold">
+                {fmt(monthly, lang)} <span className="text-sm font-normal">{isEn ? "EGP/mo" : "ج.م/ش"}</span>
+              </div>
             </div>
           </div>
 
           <p className="mt-6 text-[11px] text-ink-soft/70 leading-relaxed">
-            ** هذه الأسعار تقديرية تخضع لمعايير الجودة العالمية لدى هاى ليفيل
-            وبناءً على معاينة الموقع الفعلية. المحارة تُحسب بسعر 350 ج.م/م²،
-            الجبس بورد الإضافي 550 ج.م/م² شامل الدهان، والألوميتال الإضافي
-            3,200 ج.م/م² شامل الزجاج والسلك.
+            {isEn
+              ? "** These prices are estimates subject to High Level's world-class quality standards and an actual site visit. Plastering is calculated at 350 EGP/m², additional gypsum board at 550 EGP/m² including paint, and additional aluminum at 3,200 EGP/m² including glass and mesh."
+              : "** هذه الأسعار تقديرية تخضع لمعايير الجودة العالمية لدى هاى ليفيل وبناءً على معاينة الموقع الفعلية. المحارة تُحسب بسعر 350 ج.م/م²، الجبس بورد الإضافي 550 ج.م/م² شامل الدهان، والألوميتال الإضافي 3,200 ج.م/م² شامل الزجاج والسلك."}
           </p>
 
           {!showBooking && (
@@ -204,7 +236,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
                 disabled={!selected}
                 className="inline-block rounded-full bg-gold-gradient px-10 py-4 font-bold text-white hover:opacity-90 transition disabled:opacity-60"
               >
-                طلب معاينة وتأكيد الباقة
+                {isEn ? "Request a Visit & Confirm Package" : "طلب معاينة وتأكيد الباقة"}
               </button>
             </div>
           )}
@@ -213,7 +245,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
             <VisitBookingForm
               snapshot={{
                 packageId: selected.id,
-                packageName: selected.nameAr,
+                packageName: pkgName(selected),
                 areaSqm: area,
                 downPct,
                 installmentMonths: months,
@@ -221,6 +253,7 @@ export default function InstallmentCalculator({ packages }: { packages: Pkg[] })
                 totalCost: total,
               }}
               onCancel={() => setShowBooking(false)}
+              lang={lang}
             />
           )}
         </Reveal>

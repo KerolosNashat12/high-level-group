@@ -15,8 +15,8 @@ export type BookingSnapshot = {
   totalCost: number;
 };
 
-function fmt(n: number) {
-  return Math.round(n).toLocaleString("ar-EG");
+function fmt(n: number, lang: "ar" | "en" = "ar") {
+  return Math.round(n).toLocaleString(lang === "en" ? "en-US" : "ar-EG");
 }
 
 function todayStr() {
@@ -29,10 +29,13 @@ function todayStr() {
 export default function VisitBookingForm({
   snapshot,
   onCancel,
+  lang = "ar",
 }: {
   snapshot: BookingSnapshot;
   onCancel: () => void;
+  lang?: "ar" | "en";
 }) {
+  const isEn = lang === "en";
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -106,7 +109,7 @@ export default function VisitBookingForm({
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "حدث خطأ، حاول مرة أخرى");
+        throw new Error(body.error || (isEn ? "Something went wrong, please try again" : "حدث خطأ، حاول مرة أخرى"));
       }
       setStatus("success");
       form.reset();
@@ -115,7 +118,9 @@ export default function VisitBookingForm({
       setAvailability(null);
     } catch (err) {
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : "حدث خطأ، حاول مرة أخرى");
+      setErrorMsg(
+        err instanceof Error ? err.message : isEn ? "Something went wrong, please try again" : "حدث خطأ، حاول مرة أخرى"
+      );
     }
   }
 
@@ -123,16 +128,27 @@ export default function VisitBookingForm({
     return (
       <div className="rounded-2xl bg-gold/10 border border-gold/30 p-8 text-center">
         <CheckCircle2 className="mx-auto text-gold mb-3" size={40} />
-        <h3 className="text-lg font-bold text-ink">تم إرسال طلبك بنجاح!</h3>
+        <h3 className="text-lg font-bold text-ink">
+          {isEn ? "Your request was submitted successfully!" : "تم إرسال طلبك بنجاح!"}
+        </h3>
         <p className="text-sm text-ink-soft mt-2">
-          سيتواصل معك فريقنا خلال 24 ساعة لتأكيد موعد المعاينة على باقة{" "}
-          <span className="font-bold text-gold">{snapshot.packageName}</span>.
+          {isEn ? (
+            <>
+              Our team will contact you within 24 hours to confirm your visit for the{" "}
+              <span className="font-bold text-gold">{snapshot.packageName}</span> package.
+            </>
+          ) : (
+            <>
+              سيتواصل معك فريقنا خلال 24 ساعة لتأكيد موعد المعاينة على باقة{" "}
+              <span className="font-bold text-gold">{snapshot.packageName}</span>.
+            </>
+          )}
         </p>
         <button
           onClick={onCancel}
           className="mt-4 text-sm text-gold underline underline-offset-4"
         >
-          تم
+          {isEn ? "Done" : "تم"}
         </button>
       </div>
     );
@@ -142,33 +158,41 @@ export default function VisitBookingForm({
     <div className="rounded-2xl border border-gold/30 bg-gold/[0.04] p-5 sm:p-7 mt-6">
       <div className="flex items-start justify-between gap-3 mb-5">
         <div>
-          <h3 className="font-bold text-ink">تأكيد طلب المعاينة</h3>
+          <h3 className="font-bold text-ink">{isEn ? "Confirm Your Visit Request" : "تأكيد طلب المعاينة"}</h3>
           <p className="text-xs text-ink-soft mt-1">
-            راجع تفاصيل باقتك، ثم أكمل بياناتك لتحديد موعد المعاينة.
+            {isEn
+              ? "Review your package details, then fill in your information to schedule your visit."
+              : "راجع تفاصيل باقتك، ثم أكمل بياناتك لتحديد موعد المعاينة."}
           </p>
         </div>
         <button type="button" onClick={onCancel} className="text-xs text-ink-soft hover:text-ink shrink-0">
-          إلغاء
+          {isEn ? "Cancel" : "إلغاء"}
         </button>
       </div>
 
       {/* Locked-in package summary — required, can't be removed */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 text-center">
         <div className="rounded-xl bg-white border border-black/10 p-3">
-          <div className="text-[10px] text-ink-soft">الباقة</div>
+          <div className="text-[10px] text-ink-soft">{isEn ? "Package" : "الباقة"}</div>
           <div className="text-sm font-bold text-gold mt-0.5">{snapshot.packageName}</div>
         </div>
         <div className="rounded-xl bg-white border border-black/10 p-3">
-          <div className="text-[10px] text-ink-soft">المساحة</div>
-          <div className="text-sm font-bold text-ink mt-0.5">{fmt(snapshot.areaSqm)} م²</div>
+          <div className="text-[10px] text-ink-soft">{isEn ? "Area" : "المساحة"}</div>
+          <div className="text-sm font-bold text-ink mt-0.5">
+            {fmt(snapshot.areaSqm, lang)} {isEn ? "m²" : "م²"}
+          </div>
         </div>
         <div className="rounded-xl bg-white border border-black/10 p-3">
-          <div className="text-[10px] text-ink-soft">مدة التقسيط</div>
-          <div className="text-sm font-bold text-ink mt-0.5">{snapshot.installmentMonths} شهر</div>
+          <div className="text-[10px] text-ink-soft">{isEn ? "Installment Term" : "مدة التقسيط"}</div>
+          <div className="text-sm font-bold text-ink mt-0.5">
+            {snapshot.installmentMonths} {isEn ? "months" : "شهر"}
+          </div>
         </div>
         <div className="rounded-xl bg-white border border-black/10 p-3">
-          <div className="text-[10px] text-ink-soft">القسط الشهري</div>
-          <div className="text-sm font-bold text-ink mt-0.5">{fmt(snapshot.monthlyInstallment)} ج.م</div>
+          <div className="text-[10px] text-ink-soft">{isEn ? "Monthly Installment" : "القسط الشهري"}</div>
+          <div className="text-sm font-bold text-ink mt-0.5">
+            {fmt(snapshot.monthlyInstallment, lang)} {isEn ? "EGP" : "ج.م"}
+          </div>
         </div>
       </div>
 
@@ -176,7 +200,7 @@ export default function VisitBookingForm({
         <input
           name="name"
           required
-          placeholder="الاسم بالكامل"
+          placeholder={isEn ? "Full Name" : "الاسم بالكامل"}
           className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
         />
         <input
@@ -184,8 +208,8 @@ export default function VisitBookingForm({
           required
           type="tel"
           pattern="^01[0-9]{9}$"
-          title="رقم موبايل مصري صحيح مثال: 01012345678"
-          placeholder="رقم الموبايل"
+          title={isEn ? "A valid Egyptian mobile number, e.g. 01012345678" : "رقم موبايل مصري صحيح مثال: 01012345678"}
+          placeholder={isEn ? "Mobile Number" : "رقم الموبايل"}
           className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
         />
         <select
@@ -195,10 +219,10 @@ export default function VisitBookingForm({
           className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
         >
           <option value="" disabled>
-            المحافظة
+            {isEn ? "Governorate" : "المحافظة"}
           </option>
-          <option value="القاهرة">القاهرة</option>
-          <option value="الجيزة">الجيزة</option>
+          <option value="القاهرة">{isEn ? "Cairo" : "القاهرة"}</option>
+          <option value="الجيزة">{isEn ? "Giza" : "الجيزة"}</option>
         </select>
         <input
           name="preferredDate"
@@ -214,16 +238,20 @@ export default function VisitBookingForm({
           <div className="sm:col-span-2">
             {checkingAvailability ? (
               <div className="flex items-center gap-2 text-sm text-ink-soft">
-                <Loader2 className="animate-spin" size={16} /> جارِ التحقق من المواعيد المتاحة...
+                <Loader2 className="animate-spin" size={16} />
+                {isEn ? "Checking available dates..." : "جارِ التحقق من المواعيد المتاحة..."}
               </div>
             ) : availability && !availability.open ? (
               <div className="flex items-center gap-2 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm">
                 <CalendarX2 size={16} />
-                {availability.reason || "هذا اليوم غير متاح، الرجاء اختيار يوم آخر"}
+                {availability.reason ||
+                  (isEn ? "This day is unavailable, please choose another day" : "هذا اليوم غير متاح، الرجاء اختيار يوم آخر")}
               </div>
             ) : needsSlotChoice ? (
               <div>
-                <div className="text-xs font-bold text-ink-soft mb-2">اختر الموعد المناسب</div>
+                <div className="text-xs font-bold text-ink-soft mb-2">
+                  {isEn ? "Choose a suitable time" : "اختر الموعد المناسب"}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {availability!.slots.map((s) => (
                     <button
@@ -250,7 +278,7 @@ export default function VisitBookingForm({
 
         <textarea
           name="notes"
-          placeholder="ملاحظات إضافية (اختياري)"
+          placeholder={isEn ? "Additional notes (optional)" : "ملاحظات إضافية (اختياري)"}
           rows={3}
           className="sm:col-span-2 rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none resize-none bg-white"
         />
@@ -265,11 +293,19 @@ export default function VisitBookingForm({
           className="sm:col-span-2 rounded-xl bg-gold-gradient text-white font-bold py-3.5 flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-60"
         >
           {status === "loading" && <Loader2 className="animate-spin" size={18} />}
-          {status === "loading" ? "جارِ الإرسال..." : "تأكيد الحجز وإرسال طلب المعاينة"}
+          {status === "loading"
+            ? isEn
+              ? "Sending..."
+              : "جارِ الإرسال..."
+            : isEn
+            ? "Confirm Booking & Send Visit Request"
+            : "تأكيد الحجز وإرسال طلب المعاينة"}
         </button>
         {!canSubmit && (
           <p className="sm:col-span-2 text-[11px] text-ink-soft/70 text-center">
-            لازم تختار تاريخ وموعد متاح عشان تقدر تأكد الطلب.
+            {isEn
+              ? "You need to choose an available date and time slot to confirm your request."
+              : "لازم تختار تاريخ وموعد متاح عشان تقدر تأكد الطلب."}
           </p>
         )}
       </form>

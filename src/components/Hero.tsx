@@ -7,15 +7,18 @@ import { ChevronDown, Sparkles } from "lucide-react";
 export default function Hero({
   title,
   subtitle,
+  lang = "ar",
 }: {
   title?: string | null;
   subtitle?: string | null;
+  lang?: "ar" | "en";
 } = {}) {
+  const isEn = lang === "en";
   return (
     <section className="relative min-h-[92vh] flex items-end overflow-hidden bg-ink text-white">
       <Image
         src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1800&auto=format&fit=crop"
-        alt="تشطيب فاخر لشقة"
+        alt={isEn ? "Luxury apartment finishing" : "تشطيب فاخر لشقة"}
         fill
         priority
         className="object-cover opacity-60"
@@ -36,6 +39,12 @@ export default function Hero({
             <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
               {title}
             </h1>
+          ) : isEn ? (
+            <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
+              Apartment Finishing
+              <br />
+              <span className="text-gold italic">in Installments in Egypt</span>
+            </h1>
           ) : (
             <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.15] text-balance">
               تشطيب شقق
@@ -46,15 +55,17 @@ export default function Hero({
 
           <p className="mt-6 text-white/70 text-base sm:text-lg leading-relaxed max-w-xl">
             {subtitle ||
-              "الخيار الأول للرفاهية والتميز. نقدم حلول تشطيب ذكية بـ 3 باقات عالمية تجمع بين الفن المعماري وأسهل أنظمة سداد."}
+              (isEn
+                ? "The first choice for luxury and excellence. We deliver smart finishing solutions across 3 world-class packages that blend architectural artistry with the easiest payment plans."
+                : "الخيار الأول للرفاهية والتميز. نقدم حلول تشطيب ذكية بـ 3 باقات عالمية تجمع بين الفن المعماري وأسهل أنظمة سداد.")}
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link
-              href="/packages#calculator"
+              href={isEn ? "/en/packages#calculator" : "/packages#calculator"}
               className="rounded-full bg-gold-gradient px-8 py-4 font-bold hover:opacity-90 transition shadow-lg shadow-gold/20"
             >
-              ابدأ مشروعك الآن
+              {isEn ? "Start Your Project" : "ابدأ مشروعك الآن"}
             </Link>
             <button
               type="button"
@@ -62,13 +73,13 @@ export default function Hero({
               className="flex items-center gap-2 rounded-full border border-white/25 px-6 py-4 font-bold hover:bg-white/10 transition"
             >
               <Sparkles size={18} className="text-gold" />
-              المساعد الذكي
+              {isEn ? "AI Assistant" : "المساعد الذكي"}
             </button>
           </div>
         </div>
 
         <div className="mt-16 flex flex-col items-center gap-2 text-white/50 text-xs">
-          <span>اسحب للأسفل</span>
+          <span>{isEn ? "Scroll down" : "اسحب للأسفل"}</span>
           <ChevronDown className="animate-bounce-slow" size={18} />
         </div>
       </div>

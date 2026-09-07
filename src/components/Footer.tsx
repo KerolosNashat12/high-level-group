@@ -43,10 +43,10 @@ function LinkedinIcon() {
   );
 }
 
-const keywords = [
-  "تشطيب شقق", "ديكورات داخلية", "تقسيط تشطيب", "تصميم معماري",
-  "واجهات فلل", "باقات ذكية", "التجمع الخامس", "زايد والشيخ زايد", "أرقى أحياء القاهرة",
-];
+const KEYWORDS: Record<"ar" | "en", string[]> = {
+  ar: ["تشطيب شقق", "ديكورات داخلية", "تقسيط تشطيب", "تصميم معماري", "واجهات فلل", "باقات ذكية", "التجمع الخامس", "زايد والشيخ زايد", "أرقى أحياء القاهرة"],
+  en: ["Apartment Finishing", "Interior Decor", "Installment Finishing", "Architectural Design", "Villa Facades", "Smart Packages", "5th Settlement", "Zayed & Sheikh Zayed", "Cairo's Finest Districts"],
+};
 
 type Settings = {
   whatsappNumber: string;
@@ -63,17 +63,19 @@ type Settings = {
   youtubeEnabled: boolean;
   linkedinUrl: string | null;
   linkedinEnabled: boolean;
-  workingHoursAr: string | null;
+  workingHours?: string | null;
   mapUrl: string | null;
 };
 
-export default function Footer({ settings }: { settings: Settings }) {
+export default function Footer({ settings, lang = "ar" }: { settings: Settings; lang?: "ar" | "en" }) {
+  const isEn = lang === "en";
+  const p = isEn ? "/en" : "";
   const socials = [
-    { enabled: settings.facebookEnabled, url: settings.facebookUrl, icon: <FacebookIcon />, label: "فيسبوك" },
-    { enabled: settings.instagramEnabled, url: settings.instagramUrl, icon: <InstagramIcon />, label: "انستجرام" },
-    { enabled: settings.tiktokEnabled, url: settings.tiktokUrl, icon: <TikTokIcon />, label: "تيك توك" },
-    { enabled: settings.youtubeEnabled, url: settings.youtubeUrl, icon: <YoutubeIcon />, label: "يوتيوب" },
-    { enabled: settings.linkedinEnabled, url: settings.linkedinUrl, icon: <LinkedinIcon />, label: "لينكدإن" },
+    { enabled: settings.facebookEnabled, url: settings.facebookUrl, icon: <FacebookIcon />, label: isEn ? "Facebook" : "فيسبوك" },
+    { enabled: settings.instagramEnabled, url: settings.instagramUrl, icon: <InstagramIcon />, label: isEn ? "Instagram" : "انستجرام" },
+    { enabled: settings.tiktokEnabled, url: settings.tiktokUrl, icon: <TikTokIcon />, label: isEn ? "TikTok" : "تيك توك" },
+    { enabled: settings.youtubeEnabled, url: settings.youtubeUrl, icon: <YoutubeIcon />, label: isEn ? "YouTube" : "يوتيوب" },
+    { enabled: settings.linkedinEnabled, url: settings.linkedinUrl, icon: <LinkedinIcon />, label: isEn ? "LinkedIn" : "لينكدإن" },
   ].filter((s) => s.enabled && s.url);
 
   return (
@@ -87,8 +89,9 @@ export default function Footer({ settings }: { settings: Settings }) {
             Where Luxury Meets Precision
           </div>
           <p className="mt-4 text-sm text-white/60 leading-relaxed italic">
-            &ldquo;نحن لا نبني جدراناً، بل نصيغ تجارب إنسانية راقية. هاى ليفيل
-            هي شريكك الأمثل لتحويل مساحة أحلامك إلى حقيقة تتخطى التوقعات.&rdquo;
+            {isEn
+              ? '"We don\'t just build walls — we craft refined human experiences. High Level is your ideal partner for turning your dream space into a reality that exceeds expectations."'
+              : "“نحن لا نبني جدراناً، بل نصيغ تجارب إنسانية راقية. هاى ليفيل هي شريكك الأمثل لتحويل مساحة أحلامك إلى حقيقة تتخطى التوقعات.”"}
           </p>
           <div className="flex gap-3 mt-5">
             {socials.map((s) => (
@@ -108,7 +111,7 @@ export default function Footer({ settings }: { settings: Settings }) {
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full bg-white/10 hover:bg-gold transition"
-              aria-label="واتساب"
+              aria-label="WhatsApp"
             >
               <MessageCircle size={16} />
             </a>
@@ -116,19 +119,19 @@ export default function Footer({ settings }: { settings: Settings }) {
         </div>
 
         <div>
-          <h4 className="font-bold mb-4">روابط سريعة</h4>
+          <h4 className="font-bold mb-4">{isEn ? "Quick Links" : "روابط سريعة"}</h4>
           <ul className="space-y-2 text-sm text-white/60">
-            <li><Link href="/about" className="hover:text-gold">عن الشركة</Link></li>
-            <li><Link href="/" className="hover:text-gold">الرئيسية</Link></li>
-            <li><Link href="/portfolio" className="hover:text-gold">أعمالنا</Link></li>
-            <li><Link href="/services" className="hover:text-gold">خدماتنا</Link></li>
-            <li><Link href="/packages" className="hover:text-gold">باقات التقسيط</Link></li>
-            <li><Link href="/blog" className="hover:text-gold">المدونة</Link></li>
+            <li><Link href={`${p}/about`} className="hover:text-gold">{isEn ? "About Us" : "عن الشركة"}</Link></li>
+            <li><Link href={p || "/"} className="hover:text-gold">{isEn ? "Home" : "الرئيسية"}</Link></li>
+            <li><Link href={`${p}/portfolio`} className="hover:text-gold">{isEn ? "Our Work" : "أعمالنا"}</Link></li>
+            <li><Link href={`${p}/services`} className="hover:text-gold">{isEn ? "Services" : "خدماتنا"}</Link></li>
+            <li><Link href={`${p}/packages`} className="hover:text-gold">{isEn ? "Installment Packages" : "باقات التقسيط"}</Link></li>
+            <li><Link href={`${p}/blog`} className="hover:text-gold">{isEn ? "Blog" : "المدونة"}</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="font-bold mb-4">تواصل معنا</h4>
+          <h4 className="font-bold mb-4">{isEn ? "Contact" : "تواصل معنا"}</h4>
           <ul className="space-y-3 text-sm text-white/60">
             <li className="flex items-start gap-2">
               <MapPin size={16} className="text-gold shrink-0 mt-0.5" />
@@ -146,18 +149,18 @@ export default function Footer({ settings }: { settings: Settings }) {
             <li className="flex items-center gap-2">
               <Mail size={16} className="text-gold" /> {settings.contactEmail}
             </li>
-            {settings.workingHoursAr && (
+            {settings.workingHours && (
               <li className="flex items-center gap-2">
-                <Clock size={16} className="text-gold" /> {settings.workingHoursAr}
+                <Clock size={16} className="text-gold" /> {settings.workingHours}
               </li>
             )}
           </ul>
         </div>
 
         <div>
-          <h4 className="font-bold mb-4">كلمات شائعة</h4>
+          <h4 className="font-bold mb-4">{isEn ? "Popular Searches" : "كلمات شائعة"}</h4>
           <div className="flex flex-wrap gap-2">
-            {keywords.map((k) => (
+            {KEYWORDS[lang].map((k) => (
               <span
                 key={k}
                 className="rounded-full border border-white/15 px-3 py-1 text-[11px] text-white/50"
@@ -171,10 +174,14 @@ export default function Footer({ settings }: { settings: Settings }) {
 
       <div className="border-t border-white/10 py-6">
         <div className="container-page flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
-          <span>© {new Date().getFullYear()} هاى ليفيل للتشطيبات والديكور. جميع الحقوق محفوظة.</span>
+          <span>
+            {isEn
+              ? `© ${new Date().getFullYear()} High Level Finishing & Decor. All rights reserved.`
+              : `© ${new Date().getFullYear()} هاى ليفيل للتشطيبات والديكور. جميع الحقوق محفوظة.`}
+          </span>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-gold">سياسة الخصوصية</Link>
-            <Link href="/terms" className="hover:text-gold">الشروط والأحكام</Link>
+            <Link href={`${p}/privacy`} className="hover:text-gold">{isEn ? "Privacy Policy" : "سياسة الخصوصية"}</Link>
+            <Link href={`${p}/terms`} className="hover:text-gold">{isEn ? "Terms & Conditions" : "الشروط والأحكام"}</Link>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-bold">
             <span className="rounded border border-white/15 px-2 py-1">INSTAPAY</span>

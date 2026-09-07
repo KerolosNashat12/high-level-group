@@ -6,22 +6,26 @@ import { getSiteSettings, getPackagesBasic } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function EnglishSiteLayout({ children }: { children: React.ReactNode }) {
   const [settings, packages] = await Promise.all([getSiteSettings(), getPackagesBasic()]);
 
   return (
     <>
-      <Header logoUrl={settings.logoUrl} whatsappNumber={settings.whatsappNumber} lang="ar" />
+      <Header logoUrl={settings.logoUrl} whatsappNumber={settings.whatsappNumber} lang="en" />
       <main>{children}</main>
-      <Footer settings={{ ...settings, workingHours: settings.workingHoursAr }} lang="ar" />
+      <Footer
+        settings={{ ...settings, workingHours: settings.workingHoursEn || settings.workingHoursAr }}
+        lang="en"
+      />
       <AiAssistant
         whatsappNumber={settings.whatsappNumber}
         contactPhone={settings.contactPhone}
         contactEmail={settings.contactEmail}
         address={settings.address}
         packages={packages}
+        lang="en"
       />
-      <WhatsAppButton whatsappNumber={settings.whatsappNumber} />
+      <WhatsAppButton whatsappNumber={settings.whatsappNumber} lang="en" />
     </>
   );
 }

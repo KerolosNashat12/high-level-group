@@ -17,7 +17,7 @@ const DEFAULT_PHONE = "01080146022";
 const DEFAULT_EMAIL = "Info@highlevel.com";
 const DEFAULT_ADDRESS = "2116 المعراج العلوى، زهراء المعادى، القاهرة";
 
-type PkgBasic = { id: number; nameAr: string; pricePerMeter: number };
+type PkgBasic = { id: number; nameAr: string; nameEn?: string | null; pricePerMeter: number };
 
 function fmt(n: number) {
   return Math.round(n).toLocaleString("ar-EG");
@@ -162,19 +162,70 @@ function answerFor(
   return `مش متأكد إني فهمت سؤالك بالظبط 🙏 ${HELP_MENU}`;
 }
 
+const EN_QUICK_QUESTIONS = [
+  "What installment packages are available?",
+  "How long does the finishing take?",
+  "Do packages include electrical and plumbing?",
+  "Which areas do you cover?",
+];
+
+// A simpler English-mode assistant: the full rule-based Arabic engine above
+// stays Arabic-only (its normalization/keyword logic is language-specific),
+// but English visitors still get useful, on-brand answers for the most
+// common questions, with WhatsApp as the fallback for anything deeper.
+function answerForEn(
+  question: string,
+  ctx: { phone: string; email: string; address: string; packages: PkgBasic[] }
+): string {
+  const q = question.trim().toLowerCase();
+  const { phone, email, address, packages } = ctx;
+
+  if (/package|price|cost|how much/.test(q)) {
+    if (packages.length) {
+      const list = packages
+        .map((p) => `${p.nameEn || p.nameAr} — ${fmt(p.pricePerMeter)} EGP/m²`)
+        .join(", ");
+      return `We offer ${packages.length} smart packages: ${list}. Want a full cost estimate for your area?`;
+    }
+    return "We offer several smart finishing packages with flexible installment plans. Ask us for details on WhatsApp!";
+  }
+  if (/install|month|down ?payment|financing/.test(q)) {
+    return "You can pay a down payment starting from 10%, with the rest split over up to 60 months. Use the calculator on the Packages page for an exact estimate.";
+  }
+  if (/how long|duration|time|finish/.test(q)) {
+    return "Finishing typically takes 3-6 months depending on the property size and chosen package, with full engineering supervision throughout.";
+  }
+  if (/area|cover|location|cairo|giza/.test(q)) {
+    return "We currently cover Cairo and Giza, including New Cairo, 5th Settlement, Sheikh Zayed, and 6th of October.";
+  }
+  if (/book|visit|appointment|schedule/.test(q)) {
+    return "You can book a free site visit directly from the installment calculator on our Packages page — just pick your package and preferred time.";
+  }
+  if (/contact|phone|email|whatsapp/.test(q)) {
+    return `You can reach us at ${phone} or ${email}. Our office is at ${address}.`;
+  }
+  if (/hi|hello|hey/.test(q)) {
+    return "Hello! 👋 Ask me about our packages, pricing, installments, or coverage areas.";
+  }
+  return "I'm not fully sure I got that — I can help with package pricing, installment plans, project duration, coverage areas, or booking a free visit. For anything more specific, chat with our team on WhatsApp.";
+}
+
 export default function AiAssistant({
   whatsappNumber,
   contactPhone,
   contactEmail,
   address,
   packages,
+  lang = "ar",
 }: {
   whatsappNumber?: string | null;
   contactPhone?: string | null;
   contactEmail?: string | null;
   address?: string | null;
   packages?: PkgBasic[];
+  lang?: "ar" | "en";
 }) {
+  const isEn = lang === "en";
   const WHATSAPP_NUMBER = whatsappNumber || DEFAULT_WHATSAPP;
   const PHONE = contactPhone || DEFAULT_PHONE;
   const EMAIL = contactEmail || DEFAULT_EMAIL;
@@ -184,7 +235,9 @@ export default function AiAssistant({
   const [messages, setMessages] = useState<Msg[]>([
     {
       from: "bot",
-      text: "أهلاً بيك في هاى ليفيل جروب 👋 أنا مساعدك الذكي، اسألني عن الباقات، الأسعار، التقسيط، أو مناطق التغطية.",
+      text: isEn
+        ? "Welcome to High Level Group 👋 I'm your AI assistant — ask me about packages, pricing, installments, or coverage areas."
+        : "أهلاً بيك في هاى ليفيل جروب 👋 أنا مساعدك الذكي، اسألني عن الباقات، الأسعار، التقسيط، أو مناطق التغطية.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -207,7 +260,12 @@ export default function AiAssistant({
     setTimeout(() => {
       setMessages((m) => [
         ...m,
-        { from: "bot", text: answerFor(text, { phone: PHONE, email: EMAIL, address: ADDRESS, packages: PACKAGES }) },
+        {
+          from: "bot",
+          text: isEn
+            ? answerForEn(text, { phone: PHONE, email: EMAIL, address: ADDRESS, packages: PACKAGES })
+            : answerFor(text, { phone: PHONE, email: EMAIL, address: ADDRESS, packages: PACKAGES }),
+        },
       ]);
     }, 500);
   }
@@ -217,7 +275,7 @@ export default function AiAssistant({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="المساعد الذكي"
+        aria-label={isEn ? "AI Assistant" : "المساعد الذكي"}
         className="fixed bottom-6 left-6 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gold-gradient text-white shadow-xl animate-pulse-ring"
       >
         {open ? <X size={24} /> : <Sparkles size={24} />}
@@ -230,8 +288,8 @@ export default function AiAssistant({
               <Sparkles size={18} />
             </span>
             <div>
-              <div className="text-sm font-bold">المساعد الذكي</div>
-              <div className="text-[11px] text-white/50">هاى ليفيل جروب</div>
+              <div className="text-sm font-bold">{isEn ? "AI Assistant" : "المساعد الذكي"}</div>
+              <div className="text-[11px] text-white/50">High Level Group</div>
             </div>
           </div>
 
@@ -254,7 +312,7 @@ export default function AiAssistant({
 
           {messages.length < 3 && (
             <div className="flex flex-wrap gap-2 px-4 pb-2">
-              {QUICK_QUESTIONS.map((q) => (
+              {(isEn ? EN_QUICK_QUESTIONS : QUICK_QUESTIONS).map((q) => (
                 <button
                   key={q}
                   onClick={() => send(q)}
@@ -276,13 +334,13 @@ export default function AiAssistant({
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="اكتب سؤالك هنا..."
+              placeholder={isEn ? "Type your question here..." : "اكتب سؤالك هنا..."}
               className="flex-1 rounded-full border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-gold"
             />
             <button
               type="submit"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-gradient text-white"
-              aria-label="إرسال"
+              aria-label={isEn ? "Send" : "إرسال"}
             >
               <Send size={16} />
             </button>
@@ -293,7 +351,7 @@ export default function AiAssistant({
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 bg-black/[0.03] py-2.5 text-xs font-bold text-ink-soft hover:text-gold transition"
           >
-            <MessageCircle size={14} /> تفضل التحدث مع فريق حقيقي على واتساب
+            <MessageCircle size={14} /> {isEn ? "Chat with our real team on WhatsApp" : "تفضل التحدث مع فريق حقيقي على واتساب"}
           </a>
         </div>
       )}
