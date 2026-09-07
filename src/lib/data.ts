@@ -8,6 +8,8 @@ import {
   portfolioProjects,
   weeklyAvailability,
   blockedDates,
+  governorates,
+  districts,
 } from "@/db/schema";
 
 const DEFAULT_SETTINGS = {
@@ -173,4 +175,26 @@ export async function getPackageBySlug(slug: string) {
 
 export async function getVisitRequests() {
   return db.select().from(visitRequests).orderBy(desc(visitRequests.createdAt));
+}
+
+// `onlyEnabled` = true is for the public booking form (only what the admin
+// turned on); false is for the admin coverage page (everything, so toggles
+// can be flipped either way).
+export async function getGovernoratesWithDistricts(onlyEnabled = true) {
+  try {
+    const [govRows, distRows] = await Promise.all([
+      db.select().from(governorates).orderBy(asc(governorates.order)),
+      db.select().from(districts).orderBy(asc(districts.order)),
+    ]);
+    const govs = onlyEnabled ? govRows.filter((g) => g.enabled) : govRows;
+    return govs.map((g) => ({
+      ...g,
+      districts: distRows.filter(
+        (d) => d.governorateId === g.id && (onlyEnabled ? d.enabled : true)
+      ),
+    }));
+  } catch {
+    // Table may not exist yet (pre-migration) — fall back gracefully.
+    return [];
+  }
 }

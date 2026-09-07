@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, CalendarX2 } from "lucide-react";
 
 type Slot = { time: string; taken: boolean };
+type District = { id: number; nameAr: string; nameEn: string | null; enabled: boolean };
+type Governorate = { id: number; nameAr: string; nameEn: string | null; enabled: boolean; districts: District[] };
+
+const OTHER_DISTRICT = "__other__";
 
 export type BookingSnapshot = {
   packageId: number;
@@ -38,6 +42,24 @@ export default function VisitBookingForm({
   const isEn = lang === "en";
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [governorates, setGovernorates] = useState<Governorate[]>([]);
+  const [governorateId, setGovernorateId] = useState<string>("");
+  const [districtChoice, setDistrictChoice] = useState<string>("");
+  const [customDistrict, setCustomDistrict] = useState("");
+
+  useEffect(() => {
+    fetch("/api/coverage")
+      .then((r) => r.json())
+      .then((data) => setGovernorates(data.governorates || []))
+      .catch(() => setGovernorates([]));
+  }, []);
+
+  const selectedGov = governorates.find((g) => String(g.id) === governorateId) || null;
+  const districtName =
+    districtChoice === OTHER_DISTRICT
+      ? customDistrict.trim()
+      : selectedGov?.districts.find((d) => String(d.id) === districtChoice)?.nameAr || "";
 
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
@@ -74,7 +96,11 @@ export default function VisitBookingForm({
 
   const needsSlotChoice = Boolean(availability?.open && availability.slots.length > 0);
   const canSubmit = Boolean(
-    preferredDate && availability?.open && (!needsSlotChoice || preferredTime)
+    selectedGov &&
+      districtName &&
+      preferredDate &&
+      availability?.open &&
+      (!needsSlotChoice || preferredTime)
   );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -88,7 +114,8 @@ export default function VisitBookingForm({
     const payload = {
       name: data.get("name"),
       phone: data.get("phone"),
-      city: data.get("city"),
+      city: selectedGov?.nameAr,
+      district: districtName,
       preferredDate,
       preferredTime,
       notes: data.get("notes"),
@@ -116,6 +143,9 @@ export default function VisitBookingForm({
       setPreferredDate("");
       setPreferredTime("");
       setAvailability(null);
+      setGovernorateId("");
+      setDistrictChoice("");
+      setCustomDistrict("");
     } catch (err) {
       setStatus("error");
       setErrorMsg(
@@ -213,17 +243,56 @@ export default function VisitBookingForm({
           className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
         />
         <select
-          name="city"
           required
-          defaultValue=""
+          value={governorateId}
+          onChange={(e) => {
+            setGovernorateId(e.target.value);
+            setDistrictChoice("");
+            setCustomDistrict("");
+          }}
           className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
         >
           <option value="" disabled>
             {isEn ? "Governorate" : "المحافظة"}
           </option>
-          <option value="القاهرة">{isEn ? "Cairo" : "القاهرة"}</option>
-          <option value="الجيزة">{isEn ? "Giza" : "الجيزة"}</option>
+          {governorates.map((g) => (
+            <option key={g.id} value={g.id}>
+              {isEn ? g.nameEn || g.nameAr : g.nameAr}
+            </option>
+          ))}
         </select>
+
+        {selectedGov ? (
+          <select
+            required
+            value={districtChoice}
+            onChange={(e) => setDistrictChoice(e.target.value)}
+            className="rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
+          >
+            <option value="" disabled>
+              {isEn ? "District / Area" : "المنطقة"}
+            </option>
+            {selectedGov.districts.map((d) => (
+              <option key={d.id} value={d.id}>
+                {isEn ? d.nameEn || d.nameAr : d.nameAr}
+              </option>
+            ))}
+            <option value={OTHER_DISTRICT}>{isEn ? "Other (type it below)" : "أخرى (اكتب المنطقة)"}</option>
+          </select>
+        ) : (
+          <div />
+        )}
+
+        {districtChoice === OTHER_DISTRICT && (
+          <input
+            required
+            value={customDistrict}
+            onChange={(e) => setCustomDistrict(e.target.value)}
+            placeholder={isEn ? "Type your district/area" : "اكتب اسم المنطقة"}
+            className="sm:col-span-2 rounded-xl border border-black/10 px-4 py-3 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none bg-white"
+          />
+        )}
+
         <input
           name="preferredDate"
           type="date"
@@ -304,8 +373,8 @@ export default function VisitBookingForm({
         {!canSubmit && (
           <p className="sm:col-span-2 text-[11px] text-ink-soft/70 text-center">
             {isEn
-              ? "You need to choose an available date and time slot to confirm your request."
-              : "لازم تختار تاريخ وموعد متاح عشان تقدر تأكد الطلب."}
+              ? "Choose your governorate, area, and an available date/time to confirm your request."
+              : "لازم تختار المحافظة والمنطقة وتاريخ وموعد متاح عشان تقدر تأكد الطلب."}
           </p>
         )}
       </form>

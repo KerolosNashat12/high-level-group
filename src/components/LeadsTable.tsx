@@ -7,6 +7,7 @@ type Lead = {
   name: string;
   phone: string;
   city: string;
+  district: string | null;
   packageNameSnapshot: string | null;
   areaSqm: number | null;
   downPct: number | null;
@@ -73,7 +74,10 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                 <td className="p-4 text-ink-soft" dir="ltr">
                   <a href={`tel:${lead.phone}`} className="hover:text-gold">{lead.phone}</a>
                 </td>
-                <td className="p-4 text-ink-soft">{lead.city}</td>
+                <td className="p-4 text-ink-soft">
+                  {lead.city}
+                  {lead.district && <span className="text-xs block mt-0.5 text-ink-soft/70">{lead.district}</span>}
+                </td>
                 <td className="p-4 text-ink-soft">
                   <span className="font-bold text-gold">{lead.packageNameSnapshot ?? "—"}</span>
                   {lead.areaSqm && <span className="text-xs block mt-0.5">{fmt(lead.areaSqm)} م²</span>}

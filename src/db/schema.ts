@@ -50,6 +50,7 @@ export const visitRequests = pgTable("visit_requests", {
   phone: text("phone").notNull(),
   city: text("city").notNull(),
   area: text("area"),
+  district: text("district"),
   propertyType: text("property_type"),
   packageId: integer("package_id").references(() => packages.id),
   // Snapshot of the calculator selection at submission time, so the dashboard
@@ -135,6 +136,41 @@ export const blockedDates = pgTable("blocked_dates", {
   reason: text("reason"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Egypt's 27 governorates — admin can enable/disable which ones the booking
+// form offers, independent of the (separate) districts table below.
+export const governorates = pgTable("governorates", {
+  id: serial("id").primaryKey(),
+  nameAr: text("name_ar").notNull().unique(),
+  nameEn: text("name_en"),
+  enabled: boolean("enabled").notNull().default(true),
+  order: integer("order").notNull().default(0),
+});
+
+// Districts/areas belonging to a governorate. Admin can enable/disable each
+// one individually; the booking form always also offers a free-text
+// "other, please specify" option per governorate regardless of this list.
+export const districts = pgTable("districts", {
+  id: serial("id").primaryKey(),
+  governorateId: integer("governorate_id")
+    .notNull()
+    .references(() => governorates.id, { onDelete: "cascade" }),
+  nameAr: text("name_ar").notNull(),
+  nameEn: text("name_en"),
+  enabled: boolean("enabled").notNull().default(true),
+  order: integer("order").notNull().default(0),
+});
+
+export const governoratesRelations = relations(governorates, ({ many }) => ({
+  districts: many(districts),
+}));
+
+export const districtsRelations = relations(districts, ({ one }) => ({
+  governorate: one(governorates, {
+    fields: [districts.governorateId],
+    references: [governorates.id],
+  }),
+}));
 
 export const packagesRelations = relations(packages, ({ many }) => ({
   features: many(packageFeatures),

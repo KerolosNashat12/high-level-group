@@ -8,6 +8,7 @@ export async function notifyNewVisitRequest(data: {
   name: string;
   phone: string;
   city: string;
+  district: string;
   packageName: string;
   areaSqm: number;
   downPct: number;
@@ -40,6 +41,7 @@ export async function notifyNewVisitRequest(data: {
           <p><strong>الاسم:</strong> ${data.name}</p>
           <p><strong>الهاتف:</strong> ${data.phone}</p>
           <p><strong>المحافظة:</strong> ${data.city}</p>
+          <p><strong>المنطقة:</strong> ${data.district}</p>
           <hr />
           <p><strong>الباقة:</strong> ${data.packageName}</p>
           <p><strong>المساحة:</strong> ${fmt(data.areaSqm)} م²</p>
