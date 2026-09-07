@@ -7,6 +7,7 @@ import { packageFeatures } from "@/db/schema";
 
 const schema = z.object({
   label: z.string().min(1),
+  labelEn: z.string().optional().nullable(),
   order: z.number().int().optional(),
 });
 
@@ -28,7 +29,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const packageId = Number(params.id);
   const [created] = await db
     .insert(packageFeatures)
-    .values({ packageId, label: parsed.data.label, order: parsed.data.order ?? 0 })
+    .values({
+      packageId,
+      label: parsed.data.label,
+      labelEn: parsed.data.labelEn || null,
+      order: parsed.data.order ?? 0,
+    })
     .returning();
 
   return NextResponse.json({ ok: true, feature: created });

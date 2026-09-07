@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 
-type Feature = { id: number; label: string };
+type Feature = { id: number; label: string; labelEn?: string | null };
 type Pkg = {
   id: number;
   slug: string;
   nameAr: string;
   nameEn?: string | null;
   tagline: string | null;
+  taglineEn?: string | null;
   pricePerMeter: number;
   downPaymentPct: number;
   installmentMonths: number;
@@ -22,6 +23,7 @@ export default function PackageCard({ pkg, lang = "ar" }: { pkg: Pkg; lang?: "ar
   const isEn = lang === "en";
   const p = isEn ? "/en" : "";
   const name = isEn ? pkg.nameEn || pkg.nameAr : pkg.nameAr;
+  const tagline = isEn ? pkg.taglineEn || pkg.tagline : pkg.tagline;
   return (
     <div
       id={pkg.slug}
@@ -40,7 +42,7 @@ export default function PackageCard({ pkg, lang = "ar" }: { pkg: Pkg; lang?: "ar
       <h3 className="text-xl font-extrabold" style={{ color: pkg.color }}>
         {name}
       </h3>
-      {pkg.tagline && <p className="text-sm text-ink-soft mt-1">{pkg.tagline}</p>}
+      {tagline && <p className="text-sm text-ink-soft mt-1">{tagline}</p>}
 
       <div className="mt-6">
         <span className="text-3xl font-extrabold text-ink">
@@ -58,13 +60,13 @@ export default function PackageCard({ pkg, lang = "ar" }: { pkg: Pkg; lang?: "ar
         {pkg.features.map((f) => (
           <li key={f.id} className="flex items-start gap-2 text-sm text-ink-soft">
             <Check size={16} className="text-gold mt-0.5 shrink-0" />
-            {f.label}
+            {isEn ? f.labelEn || f.label : f.label}
           </li>
         ))}
       </ul>
 
       <Link
-        href={`${p}/packages#visit-request?package=${pkg.id}`}
+        href={`${p}/packages#calculator`}
         className="mt-8 text-center rounded-xl border-2 font-bold py-3 transition hover:text-white"
         style={{ borderColor: pkg.color, color: pkg.color }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = pkg.color)}

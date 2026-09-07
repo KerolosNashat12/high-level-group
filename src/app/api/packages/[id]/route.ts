@@ -10,6 +10,7 @@ const schema = z.object({
   nameAr: z.string().min(2).optional(),
   nameEn: z.string().min(2).optional(),
   tagline: z.string().optional().nullable(),
+  taglineEn: z.string().optional().nullable(),
   pricePerMeter: z.number().int().positive().optional(),
   downPaymentPct: z.number().int().min(0).max(100).optional(),
   installmentMonths: z.number().int().positive().optional(),

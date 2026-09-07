@@ -8,6 +8,7 @@ import { packageFeatures } from "@/db/schema";
 
 const schema = z.object({
   label: z.string().min(1).optional(),
+  labelEn: z.string().optional().nullable(),
   order: z.number().int().optional(),
 });
 

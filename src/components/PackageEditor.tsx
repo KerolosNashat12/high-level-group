@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Save, Loader2, CheckCircle2, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 
-type Feature = { id: number; label: string; order: number };
+type Feature = { id: number; label: string; labelEn: string | null; order: number };
 
 type Pkg = {
   id: number;
   nameAr: string;
   nameEn: string;
   tagline: string | null;
+  taglineEn: string | null;
   pricePerMeter: number;
   downPaymentPct: number;
   installmentMonths: number;
@@ -27,25 +28,26 @@ function FeatureRow({
   isLast,
 }: {
   feature: Feature;
-  onChanged: (id: number, label: string) => void;
+  onChanged: (id: number, label: string, labelEn: string | null) => void;
   onDeleted: (id: number) => void;
   onMove: (id: number, dir: "up" | "down") => void;
   isFirst: boolean;
   isLast: boolean;
 }) {
   const [label, setLabel] = useState(feature.label);
+  const [labelEn, setLabelEn] = useState(feature.labelEn ?? "");
   const [saving, setSaving] = useState(false);
 
   async function commit() {
-    if (label === feature.label) return;
+    if (label === feature.label && labelEn === (feature.labelEn ?? "")) return;
     setSaving(true);
     try {
       await fetch(`/api/packages/features/${feature.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label }),
+        body: JSON.stringify({ label, labelEn: labelEn || null }),
       });
-      onChanged(feature.id, label);
+      onChanged(feature.id, label, labelEn || null);
     } finally {
       setSaving(false);
     }
@@ -71,12 +73,23 @@ function FeatureRow({
           <ArrowDown size={12} />
         </button>
       </div>
-      <input
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        onBlur={commit}
-        className="flex-1 rounded-lg border border-black/10 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
-      />
+      <div className="flex-1 flex flex-col gap-1">
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onBlur={commit}
+          placeholder="عربي"
+          className="rounded-lg border border-black/10 px-2.5 py-1.5 text-xs focus:border-gold outline-none"
+        />
+        <input
+          value={labelEn}
+          onChange={(e) => setLabelEn(e.target.value)}
+          onBlur={commit}
+          placeholder="English"
+          dir="ltr"
+          className="rounded-lg border border-black/10 px-2.5 py-1.5 text-xs focus:border-gold outline-none text-ink-soft"
+        />
+      </div>
       {saving && <Loader2 className="animate-spin text-gold shrink-0" size={14} />}
       <button
         type="button"
@@ -112,6 +125,7 @@ export default function PackageEditor({ pkg }: { pkg: Pkg }) {
         body: JSON.stringify({
           nameAr: form.nameAr,
           tagline: form.tagline,
+          taglineEn: form.taglineEn,
           pricePerMeter: Number(form.pricePerMeter),
           downPaymentPct: Number(form.downPaymentPct),
           installmentMonths: Number(form.installmentMonths),
@@ -151,8 +165,8 @@ export default function PackageEditor({ pkg }: { pkg: Pkg }) {
     await fetch(`/api/packages/features/${id}`, { method: "DELETE" });
   }
 
-  function changeFeatureLabel(id: number, label: string) {
-    setFeatures((f) => f.map((x) => (x.id === id ? { ...x, label } : x)));
+  function changeFeatureLabel(id: number, label: string, labelEn: string | null) {
+    setFeatures((f) => f.map((x) => (x.id === id ? { ...x, label, labelEn } : x)));
   }
 
   async function moveFeature(id: number, dir: "up" | "down") {
@@ -197,7 +211,14 @@ export default function PackageEditor({ pkg }: { pkg: Pkg }) {
       <input
         value={form.tagline ?? ""}
         onChange={(e) => update("tagline", e.target.value)}
-        placeholder="وصف مختصر"
+        placeholder="وصف مختصر (عربي)"
+        className="w-full text-sm text-ink-soft mb-1.5 border-b border-transparent hover:border-black/10 focus:border-gold outline-none bg-transparent"
+      />
+      <input
+        value={form.taglineEn ?? ""}
+        onChange={(e) => update("taglineEn", e.target.value)}
+        placeholder="Short description (English)"
+        dir="ltr"
         className="w-full text-sm text-ink-soft mb-4 border-b border-transparent hover:border-black/10 focus:border-gold outline-none bg-transparent"
       />
 

@@ -23,6 +23,7 @@ export const packages = pgTable("packages", {
   nameAr: text("name_ar").notNull(),
   nameEn: text("name_en").notNull(),
   tagline: text("tagline"),
+  taglineEn: text("tagline_en"),
   pricePerMeter: integer("price_per_meter").notNull(),
   downPaymentPct: integer("down_payment_pct").notNull(),
   installmentMonths: integer("installment_months").notNull(),
@@ -39,6 +40,7 @@ export const packageFeatures = pgTable("package_features", {
     .notNull()
     .references(() => packages.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
+  labelEn: text("label_en"),
   order: integer("order").notNull().default(0),
 });
 
