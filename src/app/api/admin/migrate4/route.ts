@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         const existing = await db.execute(
           sql`SELECT id FROM governorates WHERE name_ar = ${g.nameAr} LIMIT 1`
         );
-        govId = (existing as unknown as { rows: { id: number }[] }).rows[0]?.id;
+        govId = (existing as unknown as { id: number }[])[0]?.id;
       } else {
         govCount++;
       }
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         const existingDist = await db.execute(
           sql`SELECT id FROM districts WHERE governorate_id = ${govId} AND name_ar = ${d.nameAr} LIMIT 1`
         );
-        if ((existingDist as unknown as { rows: unknown[] }).rows.length > 0) continue;
+        if ((existingDist as unknown as unknown[]).length > 0) continue;
 
         await db.insert(districts).values({
           governorateId: govId,
