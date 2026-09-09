@@ -222,7 +222,7 @@ export default function PackageEditor({ pkg }: { pkg: Pkg }) {
         className="w-full text-sm text-ink-soft mb-4 border-b border-transparent hover:border-black/10 focus:border-gold outline-none bg-transparent"
       />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="text-xs text-ink-soft">السعر / متر (جنيه)</label>
           <input
